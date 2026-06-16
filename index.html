@@ -364,6 +364,18 @@
   <button class="btn btn-primary btn-full" id="start-btn" onclick="startSession()" disabled>
     ▶ Pradėti testą
   </button>
+
+  <div id="export-section" style="display:block;">
+    <div style="border-top:1px solid var(--border);padding-top:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-size:0.85rem;color:var(--text-muted);">📦 Publikavimui į GitHub</div>
+        <div style="font-size:0.78rem;color:var(--text-dim);margin-top:2px;">Atsisiųskite <code>words.json</code> ir įkelkite į repozitoriją šalia <code>index.html</code></div>
+      </div>
+      <button class="btn btn-ghost" style="font-size:0.88rem;" onclick="exportWordsJson()">
+        ⬇ Eksportuoti words.json
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- ══ SCREEN: GAME ══ -->
@@ -951,9 +963,52 @@ function escHtml(s) {
 }
 
 // ═══════════════════════════════════════
-//  INIT
+//  EXPORT words.json
 // ═══════════════════════════════════════
-openDB().then(loadWordsFromDB);
+function exportWordsJson() {
+  const data = words.map(({ nr, en, transcription, lt, example, exampleTrans, ltOld, explanation }) =>
+    ({ nr, en, transcription, lt, example, exampleTrans, ltOld, explanation })
+  );
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'words.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ═══════════════════════════════════════
+//  INIT — load order:
+//  1. Try words.json from same folder (GitHub Pages)
+//  2. Fall back to IndexedDB (local use)
+// ═══════════════════════════════════════
+async function init() {
+  await openDB();
+
+  // 1. Try fetching bundled words.json — only when served over http(s), never on file://
+  if (location.protocol !== 'file:') {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3000);
+      const res = await fetch('words.json', { cache: 'no-cache', signal: controller.signal });
+      clearTimeout(timeout);
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json) && json.length) {
+          words = json;
+          setStatus(`✓ Žodynas užkrautas iš words.json — ${words.length} žodžiai`, 'ok');
+          document.getElementById('start-btn').disabled = false;
+          return;
+        }
+      }
+    } catch (_) { /* words.json nėra — gerai */ }
+  }
+
+  // 2. Fall back to IndexedDB
+  await loadWordsFromDB();
+}
+
+init();
 </script>
 </body>
 </html>
