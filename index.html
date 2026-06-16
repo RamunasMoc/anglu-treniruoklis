@@ -803,7 +803,9 @@ function submitAnswer() {
   if (!raw) return;
 
   const w = words[queue[currentIdx]];
-  const expectedField = mode === 'en-lt' ? w.lt : w.en;
+  const expectedField = mode === 'en-lt'
+    ? [w.lt, w.ltOld].filter(Boolean).join(';')
+    : w.en;
   const { correct, typo } = checkAnswer(raw, expectedField);
 
   const resultType = correct ? (typo ? 'typo' : 'correct') : 'wrong';
