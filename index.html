@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Išmanusis Anglų Kalbos Treniruoklis</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3250;
+    --accent: #5c6ef8;
+    --accent-hover: #4a5ce6;
+    --accent-glow: rgba(92, 110, 248, 0.25);
+    --success: #2ecc71;
+    --success-glow: rgba(46, 204, 113, 0.2);
+    --error: #e74c3c;
+    --error-glow: rgba(231, 76, 60, 0.2);
+    --warn: #f39c12;
+    --text: #e8eaf0;
+    --text-muted: #8b8fa8;
+    --text-dim: #555870;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; width: 100%; max-width: 720px; padding: 24px 16px; }
+  .screen.active { display: flex; flex-direction: column; gap: 20px; }
+
+  /* ── HEADER ── */
+  .app-header {
+    text-align: center;
+    padding: 40px 0 8px;
+  }
+  .app-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .app-header p { color: var(--text-muted); margin-top: 6px; font-size: 0.95rem; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+  .card h2 { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 16px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.8rem; }
+
+  /* ── UPLOAD ── */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: var(--accent-glow); }
+  .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .upload-icon { font-size: 3rem; margin-bottom: 12px; }
+  .upload-zone p { color: var(--text-muted); }
+  .upload-zone strong { color: var(--text); }
+
+  #file-status {
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    display: none;
+  }
+  #file-status.ok { background: var(--success-glow); border: 1px solid var(--success); color: var(--success); }
+  #file-status.err { background: var(--error-glow); border: 1px solid var(--error); color: var(--error); }
+
+  /* ── MODE SELECTOR ── */
+  .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .mode-btn {
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 16px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    color: var(--text);
+    font-size: 1rem;
+  }
+  .mode-btn:hover { border-color: var(--accent); background: var(--accent-glow); }
+  .mode-btn.selected { border-color: var(--accent); background: var(--accent-glow); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .mode-btn .mode-icon { font-size: 1.8rem; margin-bottom: 8px; }
+  .mode-btn .mode-label { font-weight: 600; }
+  .mode-btn .mode-desc { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 24px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 20px var(--accent-glow); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+  .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--text-muted); }
+  .btn-full { width: 100%; }
+
+  /* ── DASHBOARD ── */
+  .dashboard {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 20px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    position: sticky;
+    top: 8px;
+    z-index: 10;
+  }
+  .stat { text-align: center; }
+  .stat-value { font-size: 1.4rem; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+  .stat-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+  .stat-value.green { color: var(--success); }
+  .stat-value.blue { color: var(--accent); }
+
+  /* ── QUESTION CARD ── */
+  .question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+  }
+  .q-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .q-mode-badge {
+    font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 4px 10px; border-radius: 20px;
+    background: var(--accent-glow); color: var(--accent); border: 1px solid var(--accent);
+  }
+  .q-number { color: var(--text-dim); font-size: 0.85rem; }
+  .q-word {
+    font-size: 2.2rem; font-weight: 700; color: var(--text);
+    margin-bottom: 6px; line-height: 1.2;
+  }
+  .q-transcription { color: var(--text-muted); font-size: 1rem; font-style: italic; margin-bottom: 24px; }
+
+  .answer-row { display: flex; gap: 10px; }
+  .answer-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 1rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .answer-input:focus { border-color: var(--accent); }
+  .answer-input.correct { border-color: var(--success); background: var(--success-glow); }
+  .answer-input.wrong { border-color: var(--error); background: var(--error-glow); }
+
+  .q-context {
+    background: rgba(255,255,255,0.04);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    display: none;
+  }
+  .q-context.show { display: block; }
+  .q-context-item { margin-bottom: 6px; }
+  .q-context-item:last-child { margin-bottom: 0; }
+  .q-context-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 2px; }
+  .q-context-text { font-size: 0.92rem; color: var(--text-muted); line-height: 1.45; }
+
+  .cmd-row { display: flex; gap: 8px; margin-top: 10px; }
+  .btn-cmd-skip {
+    flex: 1; padding: 9px 14px; border-radius: var(--radius-sm); border: 1px solid var(--warn);
+    background: rgba(243,156,18,0.08); color: var(--warn); cursor: pointer; font-size: 0.88rem;
+    font-weight: 600; transition: all 0.2s;
+  }
+  .btn-cmd-skip:hover { background: rgba(243,156,18,0.18); }
+  .btn-cmd-stop {
+    flex: 1; padding: 9px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+    background: transparent; color: var(--text-muted); cursor: pointer; font-size: 0.88rem;
+    font-weight: 600; transition: all 0.2s;
+  }
+  .btn-cmd-stop:hover { border-color: var(--error); color: var(--error); }
+
+  /* ── FEEDBACK ── */
+  .feedback-panel {
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    display: none;
+  }
+  .feedback-panel.show { display: block; }
+  .feedback-panel.correct { background: var(--success-glow); border: 1px solid var(--success); }
+  .feedback-panel.typo    { background: rgba(46,204,113,0.08); border: 1px solid #a3e4b7; }
+  .feedback-panel.wrong   { background: var(--error-glow); border: 1px solid var(--error); }
+  .feedback-panel.skipped { background: rgba(243,156,18,0.1); border: 1px solid var(--warn); }
+
+  .feedback-header {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 1.1rem; font-weight: 700; margin-bottom: 14px;
+  }
+  .feedback-header.correct { color: var(--success); }
+  .feedback-header.typo    { color: #5dbb85; }
+  .feedback-header.wrong   { color: var(--error); }
+  .feedback-header.skipped { color: var(--warn); }
+
+  .info-grid { display: grid; gap: 10px; }
+  .info-row { background: rgba(255,255,255,0.04); border-radius: var(--radius-sm); padding: 12px 14px; }
+  .info-row-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 4px; }
+  .info-row-value { color: var(--text); font-size: 0.95rem; line-height: 1.5; }
+  .info-row-value em { color: var(--text-muted); font-style: italic; }
+
+  .correct-answer-highlight {
+    font-size: 1.2rem; font-weight: 700; color: var(--success); margin-bottom: 14px;
+  }
+
+  /* ── RESULTS ── */
+  .results-header { text-align: center; padding: 8px 0 20px; }
+  .results-header h2 { font-size: 1.8rem; font-weight: 700; }
+  .results-header p { color: var(--text-muted); margin-top: 4px; }
+  .results-trophy { font-size: 4rem; margin-bottom: 12px; }
+
+  .results-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .result-stat {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+  }
+  .result-stat .val { font-size: 2rem; font-weight: 700; }
+  .result-stat .lbl { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+  .result-stat.accent .val { color: var(--accent); }
+  .result-stat.green .val { color: var(--success); }
+  .result-stat.warn .val { color: var(--warn); }
+
+  .accuracy-bar-wrap { padding: 4px 0 8px; }
+  .accuracy-bar-bg { background: var(--surface2); border-radius: 99px; height: 10px; overflow: hidden; }
+  .accuracy-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--success)); transition: width 1s ease; }
+
+  .breakdown-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  .breakdown-table th { color: var(--text-muted); font-weight: 500; text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  .breakdown-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .breakdown-table tr:last-child td { border-bottom: none; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+  .tag.ok   { background: var(--success-glow); color: var(--success); }
+  .tag.typo { background: rgba(93,187,133,0.15); color: #5dbb85; }
+  .tag.skip { background: rgba(243,156,18,0.15); color: var(--warn); }
+  .tag.fail { background: var(--error-glow); color: var(--error); }
+
+  /* ── MISC ── */
+  .divider { border: none; border-top: 1px solid var(--border); }
+  .text-center { text-align: center; }
+  .gap-sm { gap: 8px; }
+
+  @media (max-width: 480px) {
+    .mode-grid { grid-template-columns: 1fr; }
+    .results-grid { grid-template-columns: 1fr; }
+    .q-word { font-size: 1.6rem; }
+    .answer-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ IMPORT MODAL ══ -->
+<div id="import-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;max-width:420px;width:100%;">
+    <h3 style="font-size:1.1rem;margin-bottom:6px;">Importuoti žodžius</h3>
+    <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:20px;">
+      Failas: <strong id="import-filename"></strong><br>
+      Rasta naujų: <strong id="import-count"></strong> žodžių &nbsp;·&nbsp; DB dabar: <strong id="import-db-count"></strong>
+    </p>
+    <div style="display:grid;gap:10px;">
+      <button class="btn btn-primary" onclick="importReplace()">
+        🔄 Pakeisti viską — ištrinti DB ir įkelti iš naujo
+      </button>
+      <button class="btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);" onclick="importMerge()">
+        ➕ Papildyti — pridėti tik naujus žodžius
+      </button>
+      <button class="btn btn-ghost" onclick="closeImportDialog()">Atšaukti</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: SETUP ══ -->
+<div id="screen-setup" class="screen active">
+  <div class="app-header">
+    <h1>🇬🇧 Anglų Kalbos Treniruoklis</h1>
+    <p>Importuok žodžių sąrašą ir pradėk mokytis</p>
+  </div>
+
+  <div class="card">
+    <h2>1. Įkelk žodžių failą</h2>
+    <div class="upload-zone" id="upload-zone">
+      <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
+      <div class="upload-icon">📂</div>
+      <p><strong>Spustelėk arba vilk failą čia</strong></p>
+      <p style="margin-top:6px; font-size:0.85rem;">Palaikomi formatai: .xlsx, .xls, .csv</p>
+    </div>
+    <div id="file-status"></div>
+  </div>
+
+  <div class="card">
+    <h2>2. Pasirink režimą</h2>
+    <div class="mode-grid">
+      <button class="mode-btn selected" data-mode="en-lt" onclick="selectMode('en-lt')">
+        <div class="mode-icon">🇬🇧→🇱🇹</div>
+        <div class="mode-label">EN → LT</div>
+        <div class="mode-desc">Angliškas žodis → lietuviškas vertimas</div>
+      </button>
+      <button class="mode-btn" data-mode="lt-en" onclick="selectMode('lt-en')">
+        <div class="mode-icon">🇱🇹→🇬🇧</div>
+        <div class="mode-label">LT → EN</div>
+        <div class="mode-desc">Lietuviškas žodis → angliškas atitikmuo</div>
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>3. Papildomos nuostatos</h2>
+    <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:center;">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="opt-shuffle" checked style="accent-color:var(--accent);width:16px;height:16px;">
+        <span>Maišyti žodžių tvarką</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;">
+        <span style="color:var(--text-muted);">Žodžių kiekis:</span>
+        <input id="opt-limit" type="number" min="1" max="9999" placeholder="Visi"
+          style="width:80px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:0.95rem;outline:none;">
+      </label>
+    </div>
+  </div>
+
+  <button class="btn btn-primary btn-full" id="start-btn" onclick="startSession()" disabled>
+    ▶ Pradėti testą
+  </button>
+</div>
+
+<!-- ══ SCREEN: GAME ══ -->
+<div id="screen-game" class="screen">
+  <!-- Dashboard -->
+  <div class="dashboard">
+    <div class="stat">
+      <div class="stat-value blue" id="stat-time">00:00</div>
+      <div class="stat-label">⏱ Laikas</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="stat-count">0 / 0</div>
+      <div class="stat-label">📚 Žodžiai</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value green" id="stat-acc">—</div>
+      <div class="stat-label">✅ Tikslumas</div>
+    </div>
+  </div>
+
+  <!-- Question -->
+  <div class="question-card">
+    <div class="q-meta">
+      <span class="q-mode-badge" id="q-mode-badge">EN → LT</span>
+      <span class="q-number" id="q-number">#1</span>
+    </div>
+    <div class="q-word" id="q-word">—</div>
+    <div class="q-transcription" id="q-transcription"></div>
+    <div class="q-context" id="q-context"></div>
+    <div class="answer-row">
+      <input class="answer-input" id="answer-input" type="text"
+        placeholder="Įvesk vertimą…" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button class="btn btn-primary" id="submit-btn" onclick="submitAnswer()">Tikrinti</button>
+    </div>
+    <div class="cmd-row">
+      <button class="btn btn-cmd-skip" onclick="skipWord()">⏭ Praleisti</button>
+      <button class="btn btn-cmd-stop" onclick="endSession()">⏹ Baigti testą</button>
+    </div>
+  </div>
+
+  <!-- Feedback -->
+  <div class="feedback-panel" id="feedback-panel">
+    <div class="feedback-header" id="feedback-header"></div>
+    <div id="correct-answer-line" class="correct-answer-highlight" style="display:none;"></div>
+    <div class="info-grid" id="info-grid"></div>
+    <button class="btn btn-primary btn-full" style="margin-top:16px;" id="next-btn" onclick="nextWord()">
+      Kitas žodis →
+    </button>
+  </div>
+
+</div>
+
+<!-- ══ SCREEN: RESULTS ══ -->
+<div id="screen-results" class="screen">
+  <div class="results-header">
+    <div class="results-trophy" id="results-trophy">🏆</div>
+    <h2>Testo rezultatai</h2>
+    <p id="results-subtitle"></p>
+  </div>
+
+  <div class="card">
+    <div class="results-grid" id="results-grid"></div>
+  </div>
+
+  <div class="card">
+    <h2>Tikslumas</h2>
+    <div class="accuracy-bar-wrap">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+        <span style="color:var(--text-muted);font-size:0.85rem;">0%</span>
+        <span style="font-weight:700;" id="acc-pct-label">0%</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">100%</span>
+      </div>
+      <div class="accuracy-bar-bg">
+        <div class="accuracy-bar-fill" id="acc-bar" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="breakdown-card">
+    <h2>Žodžių suvestinė</h2>
+    <table class="breakdown-table">
+      <thead>
+        <tr>
+          <th>#</th><th>DB#</th><th>Žodis</th><th>Vertimas</th><th>Rezultatas</th>
+        </tr>
+      </thead>
+      <tbody id="breakdown-body"></tbody>
+    </table>
+  </div>
+
+  <div style="display:flex;gap:10px;">
+    <button class="btn btn-primary" style="flex:1;" onclick="restartSameMode()">↺ Dar kartą</button>
+    <button class="btn btn-ghost" style="flex:1;" onclick="goSetup()">⚙ Nustatymai</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════
+let words = [];
+let queue = [];
+let mode = 'en-lt';
+let sessionLog = [];
+let currentIdx = 0;
+let sessionStart = null;
+let timerInterval = null;
+let answered = false;
+let pendingImportRows = null; // rows parsed from file, waiting for user decision
+
+// ═══════════════════════════════════════
+//  INDEXED DB
+// ═══════════════════════════════════════
+const DB_NAME = 'AnglKalbDB';
+const DB_VER  = 1;
+const STORE   = 'words';
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains(STORE)) {
+        d.createObjectStore(STORE, { keyPath: 'dbId', autoIncrement: true });
+      }
+    };
+    req.onsuccess = e => { db = e.target.result; resolve(db); };
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function dbClear() {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).clear();
+    tx.oncomplete = resolve;
+    tx.onerror = e => reject(e.target.error);
+  });
+}
+
+function dbAddAll(rows) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    const store = tx.objectStore(STORE);
+    rows.forEach(r => store.add(r));
+    tx.oncomplete = resolve;
+    tx.onerror = e => reject(e.target.error);
+  });
+}
+
+function dbGetAll() {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).getAll();
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+async function loadWordsFromDB() {
+  const rows = await dbGetAll();
+  if (rows.length) {
+    words = rows;
+    setStatus(`✓ Iš DB įkelti ${words.length} žodžiai`, 'ok');
+    document.getElementById('start-btn').disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════
+//  IMPORT DIALOG (modal)
+// ═══════════════════════════════════════
+function showImportDialog(newRows, filename) {
+  pendingImportRows = newRows;
+  document.getElementById('import-count').textContent = newRows.length;
+  document.getElementById('import-db-count').textContent = words.length;
+  document.getElementById('import-filename').textContent = filename;
+  document.getElementById('import-modal').style.display = 'flex';
+}
+
+function closeImportDialog() {
+  document.getElementById('import-modal').style.display = 'none';
+  pendingImportRows = null;
+}
+
+async function importReplace() {
+  closeImportDialog();
+  await dbClear();
+  await dbAddAll(pendingImportRows);
+  words = await dbGetAll();
+  setStatus(`✓ Pakeista: ${words.length} žodžiai saugomi DB`, 'ok');
+  document.getElementById('start-btn').disabled = false;
+}
+
+async function importMerge() {
+  // Merge by EN key — skip duplicates
+  const existingKeys = new Set(words.map(w => w.en.toLowerCase()));
+  const fresh = pendingImportRows.filter(r => !existingKeys.has(r.en.toLowerCase()));
+  closeImportDialog();
+  if (fresh.length) {
+    await dbAddAll(fresh);
+    words = await dbGetAll();
+  }
+  setStatus(`✓ Pridėta ${fresh.length} naujų žodžių. Iš viso DB: ${words.length}`, 'ok');
+  document.getElementById('start-btn').disabled = false;
+}
+
+// ═══════════════════════════════════════
+//  FILE IMPORT
+// ═══════════════════════════════════════
+const fileInput = document.getElementById('file-input');
+const uploadZone = document.getElementById('upload-zone');
+
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault(); uploadZone.classList.remove('drag');
+  if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) processFile(fileInput.files[0]); });
+
+function processFile(file) {
+  setStatus('', '');
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      if (!rows.length) throw new Error('Failas tuščias');
+
+      const norm = k => k.toString().trim().toLowerCase().replace(/[\s\-_]+/g, '');
+      const colMap = {};
+      Object.keys(rows[0]).forEach(k => { colMap[norm(k)] = k; });
+      const get = (row, ...cands) => {
+        for (const c of cands) {
+          const f = colMap[norm(c)];
+          if (f !== undefined) return (row[f] || '').toString().trim();
+        }
+        return '';
+      };
+
+      const parsed = rows.map(row => ({
+        nr:           get(row,'NR','Nr','nr','No','no','#'),
+        en:           get(row,'EN','en','English','Word'),
+        transcription:get(row,'Transcription','transcription','Trans'),
+        lt:           get(row,'LT','lt','Lithuanian','Vertimas'),
+        example:      get(row,'Example','example'),
+        exampleTrans: get(row,'Example-Translation','ExampleTranslation','example-translation','exampletranslation'),
+        ltOld:        get(row,'LT-old-translation','LToldtranslation','ltoldtranslation','lt-old'),
+        explanation:  get(row,'Explanation-old','Explanationold','explanationold','explanation'),
+      })).filter(w => w.en && w.lt);
+
+      if (!parsed.length) throw new Error('Nerasta tinkamų žodžių (reikia EN ir LT stulpelių)');
+
+      showImportDialog(parsed, file.name);
+    } catch (err) {
+      setStatus(`✗ Klaida: ${err.message}`, 'err');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function setStatus(msg, cls) {
+  const s = document.getElementById('file-status');
+  s.textContent = msg;
+  s.className = cls;
+  s.style.display = msg ? 'block' : 'none';
+}
+
+// ═══════════════════════════════════════
+//  MODE SELECTION
+// ═══════════════════════════════════════
+function selectMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('selected', b.dataset.mode === m));
+}
+
+// ═══════════════════════════════════════
+//  SESSION START
+// ═══════════════════════════════════════
+function startSession() {
+  const shuffle  = document.getElementById('opt-shuffle').checked;
+  const limitVal = parseInt(document.getElementById('opt-limit').value);
+  const limit    = isNaN(limitVal) ? words.length : Math.min(limitVal, words.length);
+
+  queue = Array.from({ length: words.length }, (_, i) => i);
+  if (shuffle) queue.sort(() => Math.random() - 0.5);
+  queue = queue.slice(0, limit);
+
+  sessionLog = [];
+  currentIdx = 0;
+  sessionStart = Date.now();
+  answered = false;
+
+  showScreen('screen-game');
+  startTimer();
+  renderQuestion();
+}
+
+// ═══════════════════════════════════════
+//  TIMER
+// ═══════════════════════════════════════
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(updateDashboard, 1000);
+  updateDashboard();
+}
+function stopTimer() { clearInterval(timerInterval); }
+
+function formatTime(ms) {
+  const t = Math.floor(ms / 1000);
+  return `${Math.floor(t/60).toString().padStart(2,'0')}:${(t%60).toString().padStart(2,'0')}`;
+}
+
+function updateDashboard() {
+  document.getElementById('stat-time').textContent = formatTime(Date.now() - sessionStart);
+  const done = sessionLog.length, total = queue.length;
+  document.getElementById('stat-count').textContent = `${done} / ${total}`;
+  if (done > 0) {
+    const pct = Math.round((sessionLog.filter(l => l.correct).length / done) * 100);
+    document.getElementById('stat-acc').textContent = `${pct}%`;
+  } else {
+    document.getElementById('stat-acc').textContent = '—';
+  }
+}
+
+// ═══════════════════════════════════════
+//  QUESTION RENDERING
+// ═══════════════════════════════════════
+function renderQuestion() {
+  if (currentIdx >= queue.length) { endSession(); return; }
+
+  answered = false;
+  const w = words[queue[currentIdx]];
+  const isEnLt = mode === 'en-lt';
+
+  document.getElementById('q-mode-badge').textContent = isEnLt ? 'EN → LT' : 'LT → EN';
+
+  // Show both session position AND DB number
+  const dbNum = w.nr || (queue[currentIdx] + 1);
+  document.getElementById('q-number').textContent = `${currentIdx + 1} / ${queue.length}  ·  DB #${dbNum}`;
+
+  document.getElementById('q-word').textContent = isEnLt ? w.en : w.lt;
+
+  const trans = document.getElementById('q-transcription');
+  if (isEnLt && w.transcription) {
+    trans.textContent = `[${w.transcription}]`;
+    trans.style.display = 'block';
+  } else {
+    trans.style.display = 'none';
+  }
+
+  const ctx = document.getElementById('q-context');
+  const ctxItems = [];
+  if (isEnLt) {
+    if (w.example) ctxItems.push({ label: 'Pavyzdys', text: w.example });
+  } else {
+    if (w.exampleTrans) ctxItems.push({ label: 'Lietuviškas sakinys', text: w.exampleTrans });
+    if (w.ltOld)        ctxItems.push({ label: 'Reikšmė', text: w.ltOld });
+  }
+  if (ctxItems.length) {
+    ctx.innerHTML = ctxItems.map(i =>
+      `<div class="q-context-item"><div class="q-context-label">${i.label}</div><div class="q-context-text">${escHtml(i.text)}</div></div>`
+    ).join('');
+    ctx.className = 'q-context show';
+  } else {
+    ctx.className = 'q-context';
+  }
+
+  const inp = document.getElementById('answer-input');
+  inp.value = '';
+  inp.className = 'answer-input';
+  inp.disabled = false;
+  inp.focus();
+
+  document.getElementById('feedback-panel').className = 'feedback-panel';
+  document.getElementById('feedback-panel').style.display = 'none';
+  document.getElementById('submit-btn').disabled = false;
+}
+
+// ═══════════════════════════════════════
+//  MATCHING LOGIC
+// ═══════════════════════════════════════
+function normalizeText(s) { return s.trim().toLowerCase(); }
+
+// Levenshtein distance
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({length: m+1}, (_, i) => [i, ...Array(n).fill(0)]);
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1]
+        : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+// Returns: { correct: bool, typo: bool }
+function checkAnswer(raw, expectedField) {
+  const given = normalizeText(raw);
+  const alts  = normalizeText(expectedField).split(/[;,]/).map(s => s.trim()).filter(Boolean);
+
+  if (alts.some(a => a === given)) return { correct: true, typo: false };
+
+  // One-character-off: only if the word is at least 3 chars long
+  const typo = alts.some(a => a.length >= 3 && levenshtein(given, a) === 1);
+  if (typo) return { correct: true, typo: true };
+
+  return { correct: false, typo: false };
+}
+
+// ═══════════════════════════════════════
+//  ANSWER HANDLING
+// ═══════════════════════════════════════
+document.getElementById('answer-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { answered ? nextWord() : submitAnswer(); }
+});
+
+function submitAnswer() {
+  if (answered) { nextWord(); return; }
+  const inp = document.getElementById('answer-input');
+  const raw = inp.value.trim();
+  if (!raw) return;
+
+  const w = words[queue[currentIdx]];
+  const expectedField = mode === 'en-lt' ? w.lt : w.en;
+  const { correct, typo } = checkAnswer(raw, expectedField);
+
+  const resultType = correct ? (typo ? 'typo' : 'correct') : 'wrong';
+  sessionLog.push({ wordIdx: queue[currentIdx], correct, skipped: false, typo, given: raw });
+  answered = true;
+
+  inp.className = 'answer-input ' + (correct ? 'correct' : 'wrong');
+  inp.disabled = true;
+  document.getElementById('submit-btn').disabled = true;
+
+  showFeedback(w, resultType);
+  updateDashboard();
+}
+
+function skipWord() {
+  if (answered) return;
+  const w = words[queue[currentIdx]];
+  sessionLog.push({ wordIdx: queue[currentIdx], correct: false, skipped: true, typo: false, given: '—' });
+  answered = true;
+  const inp = document.getElementById('answer-input');
+  inp.disabled = true;
+  document.getElementById('submit-btn').disabled = true;
+  showFeedback(w, 'skipped');
+  updateDashboard();
+}
+
+function nextWord() {
+  currentIdx++;
+  if (currentIdx >= queue.length) { endSession(); return; }
+  renderQuestion();
+}
+
+// ═══════════════════════════════════════
+//  FEEDBACK PANEL
+// ═══════════════════════════════════════
+function showFeedback(w, type) {
+  const panel = document.getElementById('feedback-panel');
+  const header = document.getElementById('feedback-header');
+  const correctLine = document.getElementById('correct-answer-line');
+  const grid = document.getElementById('info-grid');
+
+  panel.style.display = 'block';
+
+  const labels = {
+    correct: '✓ Teisingai!',
+    typo:    '〜 Beveik teisingai! (viena raidė)',
+    wrong:   '✗ Neteisingai',
+    skipped: '⏭ Praleista'
+  };
+  // Map 'typo' to 'correct' class for green styling, but with distinct label
+  const cssType = type === 'typo' ? 'typo' : type;
+  header.className = `feedback-header ${cssType}`;
+  header.textContent = labels[type];
+
+  const answer = mode === 'en-lt' ? w.lt : w.en;
+  if (type !== 'correct') {
+    correctLine.style.display = 'block';
+    correctLine.textContent = `Teisingas atsakymas: ${answer}`;
+  } else {
+    correctLine.style.display = 'none';
+  }
+
+  const rows = [];
+  if (mode === 'en-lt') {
+    rows.push({ label: 'Angliškas žodis', value: w.en + (w.transcription ? ` [${w.transcription}]` : '') });
+    rows.push({ label: 'Lietuviškas vertimas', value: w.lt });
+  } else {
+    rows.push({ label: 'Lietuviškas žodis', value: w.lt });
+    rows.push({ label: 'Angliškas žodis', value: w.en + (w.transcription ? ` [${w.transcription}]` : '') });
+  }
+  if (w.example)      rows.push({ label: 'Pavyzdys', value: w.example });
+  if (w.exampleTrans) rows.push({ label: 'Pavyzdžio vertimas', value: w.exampleTrans });
+  if (w.ltOld)        rows.push({ label: 'Senas vertimas', value: w.ltOld });
+  if (w.explanation)  rows.push({ label: 'Paaiškinimas', value: w.explanation });
+
+  grid.innerHTML = rows.map(r =>
+    `<div class="info-row"><div class="info-row-label">${r.label}</div><div class="info-row-value">${escHtml(r.value)}</div></div>`
+  ).join('');
+
+  panel.className = `feedback-panel show ${cssType}`;
+}
+
+// ═══════════════════════════════════════
+//  SESSION END / RESULTS
+// ═══════════════════════════════════════
+function endSession() {
+  stopTimer();
+  const elapsed = Date.now() - sessionStart;
+  showScreen('screen-results');
+  renderResults(elapsed);
+}
+
+function renderResults(elapsedMs) {
+  const total   = sessionLog.length;
+  const correct = sessionLog.filter(l => l.correct).length;
+  const typos   = sessionLog.filter(l => l.typo).length;
+  const skipped = sessionLog.filter(l => l.skipped).length;
+  const wrong   = total - correct - skipped;
+  const pct     = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+  const mins = Math.floor(elapsedMs / 60000).toString().padStart(2,'0');
+  const secs = Math.floor((elapsedMs % 60000) / 1000).toString().padStart(2,'0');
+
+  const trophy = pct >= 90 ? '🏆' : pct >= 70 ? '🥈' : pct >= 50 ? '🥉' : '📚';
+  document.getElementById('results-trophy').textContent = trophy;
+  document.getElementById('results-subtitle').textContent =
+    pct >= 90 ? 'Puikiai! Šaunuolis!' : pct >= 70 ? 'Gerai! Tęsk!' : pct >= 50 ? 'Vidutiniškai. Dar pasitreniruok!' : 'Reikia daugiau praktikos!';
+
+  document.getElementById('results-grid').innerHTML = `
+    <div class="result-stat accent"><div class="val">${mins}:${secs}</div><div class="lbl">⏱ Trukmė</div></div>
+    <div class="result-stat"><div class="val">${total}</div><div class="lbl">📚 Spręsta žodžių</div></div>
+    <div class="result-stat green"><div class="val">${correct}</div><div class="lbl">✅ Teisingai${typos ? ` (iš jų ~${typos} rašybos)` : ''}</div></div>
+    <div class="result-stat warn"><div class="val">${wrong + skipped}</div><div class="lbl">❌ Neteisingai / praleista</div></div>
+  `;
+
+  setTimeout(() => {
+    document.getElementById('acc-bar').style.width = pct + '%';
+    document.getElementById('acc-pct-label').textContent = pct + '%';
+  }, 100);
+
+  const tbody = document.getElementById('breakdown-body');
+  tbody.innerHTML = sessionLog.map((log, i) => {
+    const w = words[log.wordIdx];
+    const shown  = mode === 'en-lt' ? w.en : w.lt;
+    const answer = mode === 'en-lt' ? w.lt : w.en;
+    const dbNum  = w.nr || (log.wordIdx + 1);
+    const tag = log.skipped ? '<span class="tag skip">⏭ Praleista</span>'
+      : log.typo    ? '<span class="tag typo">〜 Beveik</span>'
+      : log.correct ? '<span class="tag ok">✓ Teisingai</span>'
+      :               '<span class="tag fail">✗ Neteisingai</span>';
+    return `<tr>
+      <td style="color:var(--text-dim)">${i+1}</td>
+      <td style="color:var(--text-dim);font-size:0.8rem">#${dbNum}</td>
+      <td>${escHtml(shown)}</td>
+      <td>${escHtml(answer)}</td>
+      <td>${tag}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+function restartSameMode() { startSession(); }
+function goSetup() { showScreen('screen-setup'); }
+
+// ═══════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ═══════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════
+openDB().then(loadWordsFromDB);
+</script>
+</body>
+</html>
