@@ -343,11 +343,23 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 
   <div class="card">
     <h2>1. Įkelk žodžių failą</h2>
-    <div class="upload-zone" id="upload-zone">
-      <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
-      <div class="upload-icon">📂</div>
-      <p><strong>Spustelėk arba vilk failą čia</strong></p>
-      <p style="margin-top:6px; font-size:0.85rem;">Palaikomi formatai: .xlsx, .xls, .csv</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+      <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+        background:var(--accent-glow);border:2px solid var(--accent);border-radius:var(--radius);
+        padding:18px 10px;cursor:pointer;text-align:center;transition:all .2s;">
+        <input type="file" id="json-input" accept=".json" style="display:none;">
+        <span style="font-size:1.6rem;">📦</span>
+        <span style="font-weight:700;color:var(--accent);font-size:0.9rem;">words.json</span>
+        <span style="font-size:0.75rem;color:var(--text-muted);">Rekomenduojama</span>
+      </label>
+      <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+        background:var(--surface2);border:2px solid var(--border);border-radius:var(--radius);
+        padding:18px 10px;cursor:pointer;text-align:center;transition:all .2s;">
+        <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display:none;">
+        <span style="font-size:1.6rem;">📊</span>
+        <span style="font-weight:700;font-size:0.9rem;">Excel / CSV</span>
+        <span style="font-size:0.75rem;color:var(--text-muted);">Naujo sąrašo importas</span>
+      </label>
     </div>
     <div id="file-status"></div>
   </div>
@@ -606,17 +618,29 @@ async function importMerge() {
 }
 
 // ═══════════════════════════════════════
+//  JSON IMPORT
+// ═══════════════════════════════════════
+document.getElementById('json-input').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const json = JSON.parse(e.target.result);
+      if (!Array.isArray(json) || !json.length) throw new Error('Failas tuščias arba netinkamos struktūros');
+      if (!json[0].en || !json[0].lt) throw new Error('Nerasta en/lt laukų');
+      showImportDialog(json, file.name);
+    } catch(err) {
+      setStatus(`✗ Klaida: ${err.message}`, 'err');
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+});
+
+// ═══════════════════════════════════════
 //  FILE IMPORT
 // ═══════════════════════════════════════
 const fileInput = document.getElementById('file-input');
-const uploadZone = document.getElementById('upload-zone');
-
-uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag'); });
-uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag'));
-uploadZone.addEventListener('drop', e => {
-  e.preventDefault(); uploadZone.classList.remove('drag');
-  if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
-});
 fileInput.addEventListener('change', () => { if (fileInput.files[0]) processFile(fileInput.files[0]); });
 
 function processFile(file) {
@@ -1015,11 +1039,7 @@ function exportWordsJson() {
 async function init() {
   await openDB();
 
-  // 1. Try IndexedDB first (fastest, works on file://)
-  await loadWordsFromDB();
-  if (words.length) return;
-
-  // 2. Try fetching bundled words.json (works on http/https; Chrome blocks on file://)
+  // 1. words.json visada turi prioritetą — tai oficiali DB
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 3000);
@@ -1031,9 +1051,13 @@ async function init() {
         words = json;
         setStatus(`✓ Žodynas užkrautas iš words.json — ${words.length} žodžiai`, 'ok');
         document.getElementById('start-btn').disabled = false;
+        return;
       }
     }
-  } catch (_) { /* words.json nepasiekiamas — naudok failo įkėlimą */ }
+  } catch (_) { /* words.json nepasiekiamas (pvz. file://) — bandome IndexedDB */ }
+
+  // 2. Jei words.json nepasiekiamas — IndexedDB (lokalus naudojimas)
+  await loadWordsFromDB();
 }
 
 init();
