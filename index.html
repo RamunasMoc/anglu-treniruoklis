@@ -793,7 +793,13 @@ function checkAnswer(raw, expectedField) {
 //  ANSWER HANDLING
 // ═══════════════════════════════════════
 document.getElementById('answer-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') { answered ? nextWord() : submitAnswer(); }
+  if (e.key === 'Enter') submitAnswer();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && answered && document.activeElement !== document.getElementById('answer-input')) {
+    nextWord();
+  }
 });
 
 function submitAnswer() {
