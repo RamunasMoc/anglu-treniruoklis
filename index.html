@@ -337,6 +337,19 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   </div>
 </div>
 
+<!-- Password modal -->
+<div id="pwd-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;max-width:360px;width:100%;">
+    <h3 style="font-size:1.1rem;margin-bottom:16px;">🔒 Administratoriaus zona</h3>
+    <input id="pwd-input" type="password" class="answer-input" placeholder="Slaptažodis…" style="width:100%;margin-bottom:12px;" onkeydown="if(event.key==='Enter')pwdConfirm()">
+    <div style="display:grid;gap:10px;">
+      <button type="button" class="btn btn-primary" onclick="pwdConfirm()">Patvirtinti</button>
+      <button type="button" class="btn btn-ghost" onclick="pwdClose()">Atšaukti</button>
+    </div>
+    <div id="pwd-error" style="color:var(--danger);font-size:0.85rem;margin-top:10px;display:none;">Neteisingas slaptažodis.</div>
+  </div>
+</div>
+
 <!-- ══ SCREEN: SETUP ══ -->
 <div id="screen-setup" class="screen active">
   <div class="app-header">
@@ -347,17 +360,19 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   <div class="card">
     <h2>1. Įkelk žodžių failą</h2>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-      <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+      <label id="json-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
         background:var(--accent-glow);border:2px solid var(--accent);border-radius:var(--radius);
-        padding:18px 10px;cursor:pointer;text-align:center;transition:all .2s;">
+        padding:18px 10px;cursor:pointer;text-align:center;transition:all .2s;"
+        onclick="return checkImportAuth(event, 'json-input')">
         <input type="file" id="json-input" accept=".json" style="display:none;">
         <span style="font-size:1.6rem;">📦</span>
         <span style="font-weight:700;color:var(--accent);font-size:0.9rem;">words.json</span>
         <span style="font-size:0.75rem;color:var(--text-muted);">Rekomenduojama</span>
       </label>
-      <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+      <label id="file-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
         background:var(--surface2);border:2px solid var(--border);border-radius:var(--radius);
-        padding:18px 10px;cursor:pointer;text-align:center;transition:all .2s;">
+        padding:18px 10px;cursor:pointer;text-align:center;transition:all .2s;"
+        onclick="return checkImportAuth(event, 'file-input')">
         <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display:none;">
         <span style="font-size:1.6rem;">📊</span>
         <span style="font-weight:700;font-size:0.9rem;">Excel / CSV</span>
@@ -408,7 +423,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         <div style="font-size:0.85rem;color:var(--text-muted);">📦 Publikavimui į GitHub</div>
         <div style="font-size:0.78rem;color:var(--text-dim);margin-top:2px;">Atsisiųskite <code>words.json</code> ir įkelkite į repozitoriją šalia <code>index.html</code></div>
       </div>
-      <button class="btn btn-ghost" style="font-size:0.88rem;" onclick="exportWordsJson()">
+      <button class="btn btn-ghost" style="font-size:0.88rem;" onclick="exportWithPassword()">
         ⬇ Eksportuoti words.json
       </button>
     </div>
@@ -1171,6 +1186,46 @@ function escHtml(s) {
 // ═══════════════════════════════════════
 //  EXPORT words.json
 // ═══════════════════════════════════════
+let _adminAuthorized = false;
+let _pwdCallback = null;
+
+function checkImportAuth(e, inputId) {
+  if (_adminAuthorized) return true; // leisti label veikti normaliai
+  e.preventDefault();
+  openPwdModal(() => {
+    _adminAuthorized = true;
+    document.getElementById(inputId).click();
+  });
+  return false;
+}
+
+function openPwdModal(callback) {
+  _pwdCallback = callback;
+  document.getElementById('pwd-error').style.display = 'none';
+  document.getElementById('pwd-input').value = '';
+  document.getElementById('pwd-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('pwd-input').focus(), 50);
+}
+function pwdConfirm() {
+  if (document.getElementById('pwd-input').value === 'admin123') {
+    const cb = _pwdCallback;
+    pwdClose();
+    if (cb) cb();
+  } else {
+    document.getElementById('pwd-error').style.display = 'block';
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-input').focus();
+  }
+}
+function pwdClose() {
+  document.getElementById('pwd-modal').style.display = 'none';
+  _pwdCallback = null;
+}
+function exportWithPassword() {
+  if (_adminAuthorized) { exportWordsJson(); return; }
+  openPwdModal(() => { _adminAuthorized = true; exportWordsJson(); });
+}
+
 function exportWordsJson() {
   const data = words.map(({ nr, en, transcription, lt, example, exampleTrans, ltOld, explanation }) =>
     ({ nr, en, transcription, lt, example, exampleTrans, ltOld, explanation })
