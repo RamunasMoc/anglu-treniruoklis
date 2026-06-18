@@ -189,6 +189,9 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     margin-bottom: 6px; line-height: 1.2;
   }
   .q-transcription { color: var(--text-muted); font-size: 1rem; font-style: italic; margin-bottom: 24px; }
+  .q-word-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .speak-btn { background: none; border: none; cursor: pointer; font-size: 1.4rem; padding: 4px 6px; border-radius: 8px; transition: background 0.15s; color: var(--text-muted); line-height: 1; }
+  .speak-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); }
 
   .answer-row { display: flex; gap: 10px; }
   .answer-input {
@@ -436,7 +439,10 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <span class="q-mode-badge" id="q-mode-badge">EN → LT</span>
       <span class="q-number" id="q-number">#1</span>
     </div>
-    <div class="q-word" id="q-word">—</div>
+    <div class="q-word-row">
+      <div class="q-word" id="q-word">—</div>
+      <button type="button" class="speak-btn" id="speak-btn" title="Garsiai" onclick="speakWord()" style="display:none">🔊</button>
+    </div>
     <div class="q-transcription" id="q-transcription"></div>
     <div class="q-context" id="q-context"></div>
     <div class="answer-row">
@@ -454,6 +460,10 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   <div class="feedback-panel" id="feedback-panel">
     <div class="feedback-header" id="feedback-header"></div>
     <div id="correct-answer-line" class="correct-answer-highlight" style="display:none;"></div>
+    <div id="answer-speak-row" style="display:none; align-items:center; gap:10px; margin-top:6px;">
+      <span id="answer-transcription" style="color:var(--text-muted); font-style:italic; font-size:0.95rem;"></span>
+      <button type="button" class="speak-btn" title="Garsiai" onclick="speakAnswer()">🔊</button>
+    </div>
     <div class="info-grid" id="info-grid"></div>
     <button type="button" class="btn btn-primary btn-full" style="margin-top:16px;" id="next-btn" onclick="nextWord()">
       Kitas žodis →
@@ -733,6 +743,26 @@ function startTimer() {
 }
 function stopTimer() { clearInterval(timerInterval); }
 
+function speakAnswer() {
+  const w = words[queue[currentIdx]];
+  if (!w || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(w.en);
+  utt.lang = 'en-US';
+  utt.rate = 0.9;
+  window.speechSynthesis.speak(utt);
+}
+
+function speakWord() {
+  const text = document.getElementById('q-word').textContent;
+  if (!text || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'en-US';
+  utt.rate = 0.9;
+  window.speechSynthesis.speak(utt);
+}
+
 function formatTime(ms) {
   const t = Math.floor(ms / 1000);
   return `${Math.floor(t/60).toString().padStart(2,'0')}:${(t%60).toString().padStart(2,'0')}`;
@@ -768,6 +798,7 @@ function renderQuestion() {
   document.getElementById('q-number').textContent = `${currentIdx + 1} / ${queue.length}  ·  DB #${dbNum}`;
 
   document.getElementById('q-word').textContent = isEnLt ? w.en : w.lt;
+  document.getElementById('speak-btn').style.display = isEnLt ? 'inline-block' : 'none';
 
   const trans = document.getElementById('q-transcription');
   if (isEnLt && w.transcription) {
@@ -1031,6 +1062,14 @@ function showFeedback(w, type) {
     correctLine.textContent = `Teisingas atsakymas: ${answer}`;
   } else {
     correctLine.style.display = 'none';
+  }
+
+  const speakRow = document.getElementById('answer-speak-row');
+  if (mode === 'lt-en') {
+    document.getElementById('answer-transcription').textContent = w.transcription ? `[${w.transcription}]` : '';
+    speakRow.style.display = 'flex';
+  } else {
+    speakRow.style.display = 'none';
   }
 
   const rows = [];
