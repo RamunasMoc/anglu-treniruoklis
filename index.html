@@ -442,11 +442,11 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <div class="answer-row">
       <input class="answer-input" id="answer-input" type="text"
         placeholder="Įvesk vertimą…" autocomplete="off" autocorrect="off" spellcheck="false">
-      <button class="btn btn-primary" id="submit-btn" onclick="submitAnswer()">Tikrinti</button>
+      <button type="button" class="btn btn-primary" id="submit-btn" onclick="submitAnswer()">Tikrinti</button>
     </div>
     <div class="cmd-row">
-      <button class="btn btn-cmd-skip" onclick="skipWord()">⏭ Praleisti</button>
-      <button class="btn btn-cmd-stop" onclick="endSession()">⏹ Baigti testą</button>
+      <button type="button" class="btn btn-cmd-skip" onclick="skipWord()">⏭ Praleisti</button>
+      <button type="button" class="btn btn-cmd-stop" onclick="endSession()">⏹ Baigti testą</button>
     </div>
   </div>
 
@@ -455,7 +455,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <div class="feedback-header" id="feedback-header"></div>
     <div id="correct-answer-line" class="correct-answer-highlight" style="display:none;"></div>
     <div class="info-grid" id="info-grid"></div>
-    <button class="btn btn-primary btn-full" style="margin-top:16px;" id="next-btn" onclick="nextWord()">
+    <button type="button" class="btn btn-primary btn-full" style="margin-top:16px;" id="next-btn" onclick="nextWord()">
       Kitas žodis →
     </button>
   </div>
@@ -743,8 +743,9 @@ function updateDashboard() {
   const done = sessionLog.length, total = queue.length;
   document.getElementById('stat-count').textContent = `${done} / ${total}`;
   if (done > 0) {
-    const pct = Math.round((sessionLog.filter(l => l.correct).length / done) * 100);
-    document.getElementById('stat-acc').textContent = `${pct}%`;
+    const correct = sessionLog.filter(l => l.correct).length;
+    const pct = Math.round((correct / done) * 100);
+    document.getElementById('stat-acc').textContent = `${correct}/${done} · ${pct}%`;
   } else {
     document.getElementById('stat-acc').textContent = '—';
   }
@@ -807,7 +808,7 @@ function renderQuestion() {
 // ═══════════════════════════════════════
 //  MATCHING LOGIC
 // ═══════════════════════════════════════
-function normalizeText(s) { return s.trim().toLowerCase(); }
+function normalizeText(s) { return s.replace(/\xa0/g, ' ').trim().toLowerCase(); }
 
 // Levenshtein distance
 function levenshtein(a, b) {
@@ -824,26 +825,138 @@ function levenshtein(a, b) {
 // Returns: { correct: bool, typo: bool }
 function checkAnswer(raw, expectedField) {
   const given = normalizeText(raw);
-  const alts  = normalizeText(expectedField).split(/[;,]/).map(s => s.trim()).filter(Boolean);
+  const alts = buildAlternatives(expectedField);
 
   if (alts.some(a => a === given)) return { correct: true, typo: false };
 
-  // One-character-off: only if the word is at least 3 chars long
   const typo = alts.some(a => a.length >= 3 && levenshtein(given, a) === 1);
   if (typo) return { correct: true, typo: true };
 
   return { correct: false, typo: false };
 }
 
+function buildAlternatives(field) {
+  const norm = s => s.replace(/\xa0/g, ' ').trim().toLowerCase();
+  const alts = new Set();
+
+  // Split on "; " (semicolon + space) to avoid cutting inside „prieš; atgal"
+  const parts = field.split(/;[\s\xa0]+/);
+
+  for (const part of parts) {
+    const p = part.trim();
+    if (!p) continue;
+
+    const pn = norm(p);
+    alts.add(pn);
+
+    // 1. Strip closed parentheticals: "virti (vandenyje)" → "virti"
+    const noParens = norm(p.replace(/\s*\([^)]*\)/g, '').trim());
+    if (noParens && noParens !== pn) alts.add(noParens);
+
+    // 2. Expand optional letters: "vir(in)ti" → "virti" and "virinti"
+    if (p.includes('(')) {
+      const withOptional    = norm(p.replace(/\(([^)]+)\)/g, '$1'));
+      const withoutOptional = norm(p.replace(/\([^)]*\)/g, ''));
+      if (withOptional)    alts.add(withOptional);
+      if (withoutOptional) alts.add(withoutOptional);
+    }
+
+    // 3a. Expand slash alternatives: "sargybos/stebėjimo bokštas" → both variants
+    if (p.includes('/')) {
+      // find "word1/word2 rest" pattern and expand
+      const slashExp = p.replace(/(\S+)\/(\S+)/g, (_, a, b) => `${a} ${b}`);
+      // generate both: replace slash-group with first word, then second
+      const firstOnly = norm(p.replace(/(\S+)\/\S+/g, '$1'));
+      const secondOnly = norm(p.replace(/\S+\/(\S+)/g, '$1'));
+      if (firstOnly)  alts.add(firstOnly);
+      if (secondOnly) alts.add(secondOnly);
+      alts.add(norm(slashExp));
+    }
+
+    // 3. Strip unclosed trailing parenthetical: "(su)grūsti (į košę" → "grūsti"
+    //    First expand/remove closed parens, then cut at first remaining "("
+    const expanded = p.replace(/\(([^)]+)\)/g, '$1').replace(/\([^)]*\)/g, '');
+    const cutAtParen = norm(expanded.replace(/\s*\(.*$/, '').trim());
+    if (cutAtParen && cutAtParen !== pn) alts.add(cutAtParen);
+
+    // 3. Extract text inside „..." or "..." quotes as standalone alternatives
+    for (const m of [...p.matchAll(/[„""]([^"""„]+)["""]/g)]) {
+      for (const q of m[1].split(/;\s+/)) {
+        const qn = norm(q);
+        if (qn) alts.add(qn);
+      }
+    }
+
+    // 4. Strip leading numbers or grammatical labels: "1 algalapis", "pref prieš-", etc.
+    const stripped = pn.replace(/^[\d]+[\s.]+/, '').replace(/^[a-ząčęėįšųūž]+\s+/, '');
+    if (stripped && stripped !== pn) alts.add(stripped);
+
+    // 4c. Split on inline sub-numbers: "1 skoningas 2 ret. skanus" → also add each sub-part
+    if (/\s\d+\s/.test(pn)) {
+      for (const sub of pn.split(/\s+\d+\s+/)) {
+        const sn = norm(sub);
+        if (sn) alts.add(sn);
+      }
+    }
+
+    // 4b. Strip inline numbers glued to words: "šešėliuotas2 abejotinas" → "šešėliuotas abejotinas"
+    //     Also generate each individual word stripped of digits
+    if (/\d/.test(pn)) {
+      const noInlineNums = pn.replace(/(\p{L})\d+/gu, '$1').replace(/\d+(\p{L})/gu, '$1');
+      if (noInlineNums !== pn) {
+        alts.add(noInlineNums.trim());
+        // Also add just the first word of the cleaned string
+        const firstWord = noInlineNums.trim().split(/\s+/)[0];
+        if (firstWord) alts.add(firstWord);
+      }
+    }
+  }
+
+  // 5. Final pass over all alts: strip unclosed parens, leading/trailing hyphens, leading numbers/labels
+  for (const a of [...alts]) {
+    // strip unclosed trailing "(" — "gesinti (ugnį" → "gesinti"
+    if (a.includes('(')) {
+      const cut = a.replace(/\s*\(.*$/, '').trim();
+      if (cut && cut !== a) alts.add(cut);
+    }
+    // strip leading/trailing hyphens
+    const noHyphen = a.replace(/^-+/, '').replace(/-+$/, '');
+    if (noHyphen && noHyphen !== a) alts.add(noHyphen);
+    // recursively strip leading numbers and abbreviations (e.g. "4 ekon. nuosmukis" → "nuosmukis")
+    let clean = a, prev;
+    do {
+      prev = clean;
+      clean = clean
+        .replace(/^[\d]+[\s.]+/, '')
+        .replace(/^[a-ząčęėįšųūž]{1,6}\.\s+/i, '')
+        .trim();
+    } while (clean !== prev);
+    if (clean && clean !== a) alts.add(clean);
+  }
+
+  // 6. Backwards compat: also split by plain ","
+  for (const part of field.split(',')) {
+    const p = norm(part);
+    if (p) alts.add(p);
+  }
+
+  return [...alts].filter(Boolean);
+}
+
 // ═══════════════════════════════════════
 //  ANSWER HANDLING
 // ═══════════════════════════════════════
 document.getElementById('answer-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') submitAnswer();
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    e.stopPropagation();
+    submitAnswer();
+  }
 });
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && answered && document.activeElement !== document.getElementById('answer-input')) {
+  if (e.key === 'Enter' && answered) {
+    e.preventDefault();
     nextWord();
   }
 });
@@ -856,7 +969,7 @@ function submitAnswer() {
 
   const w = words[queue[currentIdx]];
   const expectedField = mode === 'en-lt'
-    ? [w.lt, w.ltOld].filter(Boolean).join(';')
+    ? [w.lt, w.ltOld].filter(Boolean).join('; ')
     : w.en;
   const { correct, typo } = checkAnswer(raw, expectedField);
 
