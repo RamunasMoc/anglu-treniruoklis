@@ -410,12 +410,26 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         <input id="opt-limit" type="number" min="1" max="9999" placeholder="Visi"
           style="width:80px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:0.95rem;outline:none;">
       </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="opt-sr" style="accent-color:var(--accent);width:16px;height:16px;">
+        <span>Spaced Repetition</span>
+      </label>
     </div>
   </div>
 
-  <button class="btn btn-primary btn-full" id="start-btn" onclick="startSession()" disabled>
-    ▶ Pradėti testą
-  </button>
+  <div id="progress-bar-section" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:4px;"></div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <button class="btn btn-primary" style="flex:1;" id="start-btn" onclick="startSession()" disabled>
+      ▶ Pradėti testą
+    </button>
+    <button class="btn btn-ghost" style="flex:1;border-color:var(--danger);color:var(--danger);" id="weak-btn" onclick="startWeakSession()" disabled>
+      ⚡ Treniruoti klaidas
+    </button>
+  </div>
+  <div id="weak-alert" style="display:none;margin-top:8px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:0.85rem;color:var(--text-muted);">
+    Dar nėra klaidų duomenų — pirmiausia atlik bent vieną testą.
+  </div>
 
   <div id="export-section" style="display:block;">
     <div style="border-top:1px solid var(--border);padding-top:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
@@ -544,13 +558,15 @@ let sessionStart = null;
 let timerInterval = null;
 let answered = false;
 let pendingImportRows = null; // rows parsed from file, waiting for user decision
+let scores = {}; // keyed by word nr, value: { nr, score }
 
 // ═══════════════════════════════════════
 //  INDEXED DB
 // ═══════════════════════════════════════
-const DB_NAME = 'AnglKalbDB';
-const DB_VER  = 1;
-const STORE   = 'words';
+const DB_NAME   = 'AnglKalbDB';
+const DB_VER    = 2;
+const STORE     = 'words';
+const SCORE_STORE = 'scores';
 let db = null;
 
 function openDB() {
@@ -560,6 +576,9 @@ function openDB() {
       const d = e.target.result;
       if (!d.objectStoreNames.contains(STORE)) {
         d.createObjectStore(STORE, { keyPath: 'dbId', autoIncrement: true });
+      }
+      if (!d.objectStoreNames.contains(SCORE_STORE)) {
+        d.createObjectStore(SCORE_STORE, { keyPath: 'nr' });
       }
     };
     req.onsuccess = e => { db = e.target.result; resolve(db); };
@@ -601,7 +620,82 @@ async function loadWordsFromDB() {
     words = rows;
     setStatus(`✓ Iš DB įkelti ${words.length} žodžiai`, 'ok');
     document.getElementById('start-btn').disabled = false;
+    document.getElementById('weak-btn').disabled = false;
   }
+}
+
+function dbGetAllScores() {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(SCORE_STORE, 'readonly');
+    const req = tx.objectStore(SCORE_STORE).getAll();
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function dbPutScore(record) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(SCORE_STORE, 'readwrite');
+    tx.objectStore(SCORE_STORE).put(record);
+    tx.oncomplete = resolve;
+    tx.onerror = e => reject(e.target.error);
+  });
+}
+
+async function loadScores() {
+  const rows = await dbGetAllScores();
+  scores = {};
+  for (const r of rows) scores[r.nr] = r.score;
+  renderProgressBar();
+}
+
+function updateScore(wordIdx, correct) {
+  const w = words[wordIdx];
+  if (!w || !w.nr) return;
+  const nr = w.nr;
+  const current = scores[nr] !== undefined ? scores[nr] : 50;
+  const next = Math.min(100, Math.max(0, current + (correct ? -10 : 15)));
+  scores[nr] = next;
+  dbPutScore({ nr, score: next });
+  renderProgressBar();
+}
+
+function renderProgressBar() {
+  const bar = document.getElementById('progress-bar-section');
+  if (!bar) return;
+  const total = words.length;
+  if (!total) { bar.style.display = 'none'; return; }
+
+  let good = 0, learning = 0, hard = 0, unknown = 0;
+  for (const w of words) {
+    const s = scores[w.nr];
+    if (s === undefined) unknown++;
+    else if (s < 40) good++;
+    else if (s < 70) learning++;
+    else hard++;
+  }
+
+  const pGood    = (good    / total * 100).toFixed(1);
+  const pLearn   = (learning / total * 100).toFixed(1);
+  const pHard    = (hard    / total * 100).toFixed(1);
+  const pUnknown = (unknown / total * 100).toFixed(1);
+
+  bar.style.display = 'block';
+  bar.innerHTML = `
+    <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:6px;font-weight:600;">📊 Žodžių pažanga</div>
+    <div style="display:flex;height:14px;border-radius:7px;overflow:hidden;gap:1px;">
+      <div style="flex:${pGood};background:#22c55e;min-width:${good?2:0}px;" title="Gerai žinomi: ${good}"></div>
+      <div style="flex:${pLearn};background:#eab308;min-width:${learning?2:0}px;" title="Mokosi: ${learning}"></div>
+      <div style="flex:${pHard};background:#ef4444;min-width:${hard?2:0}px;" title="Sunkūs: ${hard}"></div>
+      <div style="flex:${pUnknown};background:var(--border);min-width:${unknown?2:0}px;" title="Nežinoma: ${unknown}"></div>
+    </div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:0.78rem;color:var(--text-muted);">
+      <span>🟢 Gerai žinomi: <b>${good}</b></span>
+      <span>🟡 Mokosi: <b>${learning}</b></span>
+      <span>🔴 Sunkūs: <b>${hard}</b></span>
+      <span>⬜ Nežinoma: <b>${unknown}</b></span>
+    </div>
+  `;
 }
 
 // ═══════════════════════════════════════
@@ -733,11 +827,50 @@ function startSession() {
   const shuffle  = document.getElementById('opt-shuffle').checked;
   const limitVal = parseInt(document.getElementById('opt-limit').value);
   const limit    = isNaN(limitVal) ? words.length : Math.min(limitVal, words.length);
+  const sr       = document.getElementById('opt-sr') && document.getElementById('opt-sr').checked;
 
-  queue = Array.from({ length: words.length }, (_, i) => i);
+  const srAlert = document.getElementById('sr-alert');
+  if (srAlert) srAlert.style.display = 'none';
+
+  if (sr) {
+    queue = [];
+    words.forEach((w, i) => {
+      const s = scores[w.nr] !== undefined ? scores[w.nr] : 50;
+      const times = s >= 70 ? 3 : s >= 40 ? 2 : 1;
+      for (let t = 0; t < times; t++) queue.push(i);
+    });
+  } else {
+    queue = Array.from({ length: words.length }, (_, i) => i);
+  }
+
   if (shuffle) queue.sort(() => Math.random() - 0.5);
   queue = queue.slice(0, limit);
 
+  sessionLog = [];
+  currentIdx = 0;
+  sessionStart = Date.now();
+  answered = false;
+
+  showScreen('screen-game');
+  startTimer();
+  renderQuestion();
+}
+
+function startWeakSession() {
+  const weakIndices = [];
+  words.forEach((w, i) => {
+    const s = scores[w.nr];
+    if (s !== undefined && s >= 60) weakIndices.push(i);
+  });
+
+  const alert = document.getElementById('weak-alert');
+  if (!weakIndices.length) {
+    if (alert) { alert.style.display = 'block'; }
+    return;
+  }
+  if (alert) alert.style.display = 'none';
+
+  queue = weakIndices.sort(() => Math.random() - 0.5);
   sessionLog = [];
   currentIdx = 0;
   sessionStart = Date.now();
@@ -1021,6 +1154,7 @@ function submitAnswer() {
 
   const resultType = correct ? (typo ? 'typo' : 'correct') : 'wrong';
   sessionLog.push({ wordIdx: queue[currentIdx], correct, skipped: false, typo, given: raw });
+  updateScore(queue[currentIdx], correct);
   answered = true;
 
   inp.className = 'answer-input ' + (correct ? 'correct' : 'wrong');
@@ -1035,6 +1169,7 @@ function skipWord() {
   if (answered) return;
   const w = words[queue[currentIdx]];
   sessionLog.push({ wordIdx: queue[currentIdx], correct: false, skipped: true, typo: false, given: '—' });
+  updateScore(queue[currentIdx], false);
   answered = true;
   const inp = document.getElementById('answer-input');
   inp.disabled = true;
@@ -1258,6 +1393,8 @@ async function init() {
         words = json;
         setStatus(`✓ Žodynas užkrautas iš words.json — ${words.length} žodžiai`, 'ok');
         document.getElementById('start-btn').disabled = false;
+        document.getElementById('weak-btn').disabled = false;
+        await loadScores();
         return;
       }
     }
@@ -1265,6 +1402,7 @@ async function init() {
 
   // 2. Jei words.json nepasiekiamas — IndexedDB (lokalus naudojimas)
   await loadWordsFromDB();
+  await loadScores();
 }
 
 init();
