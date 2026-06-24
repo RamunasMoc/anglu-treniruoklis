@@ -1101,6 +1101,14 @@ function buildAlternatives(field) {
     // strip leading/trailing hyphens
     const noHyphen = a.replace(/^-+/, '').replace(/-+$/, '');
     if (noHyphen && noHyphen !== a) alts.add(noHyphen);
+    // strip inline digits glued to words: "tinkamumas3 galimumas" → each word without digit
+    if (/\p{L}\d|\d\p{L}/u.test(a)) {
+      const noInline = a.replace(/(\p{L})\d+/gu, '$1').replace(/\d+(\p{L})/gu, '$1').trim();
+      if (noInline && noInline !== a) {
+        alts.add(noInline);
+        for (const w of noInline.split(/\s+/)) if (w) alts.add(w);
+      }
+    }
     // recursively strip leading numbers and abbreviations (e.g. "4 ekon. nuosmukis" → "nuosmukis")
     let clean = a, prev;
     do {
