@@ -337,6 +337,30 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   </div>
 </div>
 
+<!-- Game DB Editor modal -->
+<div id="game-editor-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;max-width:480px;width:100%;margin:auto;">
+    <div style="font-weight:700;font-size:1.05rem;margin-bottom:14px;" id="gem-title">✏️ Redaguoti žodį</div>
+    <div style="display:grid;gap:10px;">
+      <div><label style="font-size:0.78rem;color:var(--text-muted);">Nr.</label><input id="gem-nr" class="answer-input" style="width:100%;margin-top:3px;"></div>
+      <div><label style="font-size:0.78rem;color:var(--text-muted);">Angliškas žodis</label><input id="gem-en" class="answer-input" style="width:100%;margin-top:3px;"></div>
+      <div><label style="font-size:0.78rem;color:var(--text-muted);">Transkripcija</label><input id="gem-transcription" class="answer-input" style="width:100%;margin-top:3px;"></div>
+      <div><label style="font-size:0.78rem;color:var(--text-muted);">Lietuviškas vertimas</label><textarea id="gem-lt" class="answer-input" style="width:100%;margin-top:3px;height:64px;resize:vertical;"></textarea></div>
+      <div><label style="font-size:0.78rem;color:var(--text-muted);">Senas vertimas (ltOld)</label><input id="gem-ltOld" class="answer-input" style="width:100%;margin-top:3px;"></div>
+      <div><label style="font-size:0.78rem;color:var(--text-muted);">Pavyzdys (EN)</label><textarea id="gem-example" class="answer-input" style="width:100%;margin-top:3px;height:52px;resize:vertical;"></textarea></div>
+      <div><label style="font-size:0.78rem;color:var(--text-muted);">Pavyzdžio vertimas (LT)</label><textarea id="gem-exampleTrans" class="answer-input" style="width:100%;margin-top:3px;height:52px;resize:vertical;"></textarea></div>
+      <div><label style="font-size:0.78rem;color:var(--text-muted);">Paaiškinimas</label><textarea id="gem-explanation" class="answer-input" style="width:100%;margin-top:3px;height:52px;resize:vertical;"></textarea></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
+      <button type="button" class="btn btn-primary" style="flex:1;" onclick="gemSave()">💾 Išsaugoti</button>
+      <button type="button" class="btn btn-ghost" style="flex:1;border-color:var(--danger);color:var(--danger);" id="gem-delete-btn" onclick="gemDelete()">🗑 Ištrinti</button>
+      <button type="button" class="btn btn-ghost" style="flex:1;" onclick="gemNewWord()">＋ Naujas</button>
+      <button type="button" class="btn btn-ghost" style="flex:1;" onclick="gemClose()">✕ Uždaryti</button>
+    </div>
+    <div id="gem-msg" style="margin-top:8px;font-size:0.85rem;display:none;"></div>
+  </div>
+</div>
+
 <!-- Password modal -->
 <div id="pwd-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;padding:16px;">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;max-width:360px;width:100%;">
@@ -363,7 +387,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <label id="json-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
         background:var(--accent-glow);border:2px solid var(--accent);border-radius:var(--radius);
         padding:18px 10px;cursor:pointer;text-align:center;transition:all .2s;"
-        onclick="return checkImportAuth(event, 'json-input')">
+        >
         <input type="file" id="json-input" accept=".json" style="display:none;">
         <span style="font-size:1.6rem;">📦</span>
         <span style="font-weight:700;color:var(--accent);font-size:0.9rem;">words.json</span>
@@ -372,7 +396,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <label id="file-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
         background:var(--surface2);border:2px solid var(--border);border-radius:var(--radius);
         padding:18px 10px;cursor:pointer;text-align:center;transition:all .2s;"
-        onclick="return checkImportAuth(event, 'file-input')">
+        >
         <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display:none;">
         <span style="font-size:1.6rem;">📊</span>
         <span style="font-weight:700;font-size:0.9rem;">Excel / CSV</span>
@@ -431,17 +455,107 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     Dar nėra klaidų duomenų — pirmiausia atlik bent vieną testą.
   </div>
 
-  <div id="export-section" style="display:block;">
-    <div style="border-top:1px solid var(--border);padding-top:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-      <div>
-        <div style="font-size:0.85rem;color:var(--text-muted);">📦 Publikavimui į GitHub</div>
-        <div style="font-size:0.78rem;color:var(--text-dim);margin-top:2px;">Atsisiųskite <code>words.json</code> ir įkelkite į repozitoriją šalia <code>index.html</code></div>
+  <!-- Admin zone — hidden until authorized -->
+  <div id="admin-zone" style="display:none;margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <span style="font-size:0.85rem;font-weight:600;color:var(--text-muted);">🔐 Administratoriaus zona</span>
+      <button type="button" class="btn btn-ghost" style="font-size:0.78rem;padding:4px 10px;" onclick="adminLogout()">Atsijungti</button>
+    </div>
+
+    <div id="export-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+        <div>
+          <div style="font-size:0.85rem;color:var(--text-muted);">📦 Publikavimui į GitHub</div>
+          <div style="font-size:0.78rem;color:var(--text-dim);margin-top:2px;">Atsisiųskite <code>words.json</code> ir įkelkite į repozitoriją šalia <code>index.html</code></div>
+        </div>
+        <button class="btn btn-ghost" style="font-size:0.88rem;" onclick="exportWordsJson()">
+          ⬇ Eksportuoti words.json
+        </button>
       </div>
-      <button class="btn btn-ghost" style="font-size:0.88rem;" onclick="exportWithPassword()">
-        ⬇ Eksportuoti words.json
-      </button>
+    </div>
+
+  <!-- Admin enrichment panel — hidden until authorized -->
+  <div id="admin-enrich-panel" style="display:none; margin-top:0;">
+    <div class="card" style="padding:18px 20px;">
+      <div style="font-weight:700;font-size:1.05rem;margin-bottom:12px;">🔧 Žodžių reikšmių papildymas</div>
+      <div id="enrich-status" style="font-size:0.9rem;color:var(--text-muted);margin-bottom:14px;">Paspauskite „Pradėti" norėdami pradėti.</div>
+
+      <div style="display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:140px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;">
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:4px;">Dabartinė reikšmė:</div>
+          <div id="enrich-old" style="font-size:0.92rem;">—</div>
+        </div>
+        <div style="flex:1;min-width:140px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;">
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:4px;">Nauja reikšmė (Glosbe):</div>
+          <div id="enrich-new" style="font-size:0.92rem;">—</div>
+        </div>
+      </div>
+
+      <!-- Progress bar wrapper -->
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);height:8px;margin-bottom:14px;overflow:hidden;">
+        <div id="enrich-progress-bar" style="height:100%;width:0%;background:var(--accent);transition:width 0.3s;"></div>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-primary" style="flex:1;" onclick="startEnrichment()">▶ Pradėti papildymą</button>
+        <button class="btn btn-primary" id="enrich-accept" style="flex:1;background:var(--success);border-color:var(--success);" onclick="enrichAccept()" disabled>✓ Pakeisti</button>
+        <button class="btn btn-ghost" id="enrich-skip" style="flex:1;" onclick="enrichSkip()">✗ Palikti</button>
+        <button class="btn btn-ghost" style="flex:1;border-color:var(--danger);color:var(--danger);" onclick="enrichStop()">⏹ Sustabdyti</button>
+      </div>
     </div>
   </div>
+
+  <!-- DB Editor panel -->
+  <div id="admin-editor-panel" style="display:none;margin-top:16px;">
+    <div class="card" style="padding:18px 20px;">
+      <div style="font-weight:700;font-size:1.05rem;margin-bottom:14px;">📝 DB redaktorius</div>
+
+      <!-- Search -->
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <input id="editor-search" type="text" class="answer-input" placeholder="Ieškoti žodžio (EN arba LT)…" style="flex:1;" oninput="editorSearch()">
+        <button type="button" class="btn btn-primary" onclick="editorNewWord()">＋ Naujas</button>
+      </div>
+
+      <!-- Search results -->
+      <div id="editor-search-results" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);max-height:180px;overflow-y:auto;margin-bottom:14px;"></div>
+
+      <!-- Edit form -->
+      <div id="editor-form" style="display:none;">
+        <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:10px;" id="editor-form-title">Redaguoti žodį</div>
+        <div style="display:grid;gap:10px;">
+          <div><label style="font-size:0.78rem;color:var(--text-muted);">Nr.</label><input id="ef-nr" class="answer-input" style="width:100%;margin-top:3px;" placeholder="Nr."></div>
+          <div><label style="font-size:0.78rem;color:var(--text-muted);">Angliškas žodis</label><input id="ef-en" class="answer-input" style="width:100%;margin-top:3px;" placeholder="English word"></div>
+          <div><label style="font-size:0.78rem;color:var(--text-muted);">Transkripcija</label><input id="ef-transcription" class="answer-input" style="width:100%;margin-top:3px;" placeholder="/trænˈskrɪpʃən/"></div>
+          <div><label style="font-size:0.78rem;color:var(--text-muted);">Lietuviškas vertimas</label><textarea id="ef-lt" class="answer-input" style="width:100%;margin-top:3px;height:64px;resize:vertical;" placeholder="vertimas; reikšmė"></textarea></div>
+          <div><label style="font-size:0.78rem;color:var(--text-muted);">Senas vertimas (ltOld)</label><input id="ef-ltOld" class="answer-input" style="width:100%;margin-top:3px;"></div>
+          <div><label style="font-size:0.78rem;color:var(--text-muted);">Pavyzdys (EN)</label><textarea id="ef-example" class="answer-input" style="width:100%;margin-top:3px;height:52px;resize:vertical;" placeholder="Example sentence."></textarea></div>
+          <div><label style="font-size:0.78rem;color:var(--text-muted);">Pavyzdžio vertimas (LT)</label><textarea id="ef-exampleTrans" class="answer-input" style="width:100%;margin-top:3px;height:52px;resize:vertical;" placeholder="Pavyzdžio sakinys."></textarea></div>
+          <div><label style="font-size:0.78rem;color:var(--text-muted);">Paaiškinimas</label><textarea id="ef-explanation" class="answer-input" style="width:100%;margin-top:3px;height:52px;resize:vertical;"></textarea></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-primary" style="flex:1;" onclick="editorSave()">💾 Išsaugoti</button>
+          <button type="button" class="btn btn-ghost" style="flex:1;border-color:var(--danger);color:var(--danger);" id="editor-delete-btn" onclick="editorDelete()">🗑 Ištrinti</button>
+          <button type="button" class="btn btn-ghost" style="flex:1;" onclick="editorCancel()">✕ Atšaukti</button>
+        </div>
+        <div id="editor-msg" style="margin-top:8px;font-size:0.85rem;display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button class="btn btn-ghost" style="flex:1;font-size:0.88rem;" onclick="openAdminEnrich()">🔧 Reikšmių papildymas</button>
+      <button class="btn btn-ghost" style="flex:1;font-size:0.88rem;" onclick="openAdminEditor()">📝 DB redaktorius</button>
+    </div>
+
+  </div><!-- /admin-zone -->
+
+  <button type="button" id="admin-login-btn" class="btn btn-ghost"
+    style="width:100%;margin-top:12px;font-size:0.78rem;color:var(--text-dim);border-color:transparent;opacity:0.5;"
+    onclick="openPwdModal(function(){ _adminAuthorized=true; document.getElementById('admin-zone').style.display='block'; document.getElementById('admin-login-btn').style.display='none'; document.getElementById('game-editor-btn').style.display='inline-block'; })">
+    ⚙ Administratorius
+  </button>
+
 </div>
 
 <!-- ══ SCREEN: GAME ══ -->
@@ -482,6 +596,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <div class="cmd-row">
       <button type="button" class="btn btn-cmd-skip" onclick="skipWord()">⏭ Praleisti</button>
       <button type="button" class="btn btn-cmd-stop" onclick="endSession()">⏹ Baigti testą</button>
+      <button type="button" class="btn btn-ghost" id="game-editor-btn" style="display:inline-block;padding:0 10px;font-size:1rem;" title="Redaguoti žodį" onclick="openGameEditor()">✏️</button>
     </div>
   </div>
 
@@ -715,9 +830,10 @@ function closeImportDialog() {
 }
 
 async function importReplace() {
+  const rows = pendingImportRows;
   closeImportDialog();
   await dbClear();
-  await dbAddAll(pendingImportRows);
+  await dbAddAll(rows);
   words = await dbGetAll();
   setStatus(`✓ Pakeista: ${words.length} žodžiai saugomi DB`, 'ok');
   document.getElementById('start-btn').disabled = false;
@@ -1330,6 +1446,15 @@ function escHtml(s) {
 //  EXPORT words.json
 // ═══════════════════════════════════════
 let _adminAuthorized = false;
+
+function adminLogout() {
+  _adminAuthorized = false;
+  document.getElementById('admin-zone').style.display = 'none';
+  document.getElementById('admin-login-btn').style.display = 'block';
+  document.getElementById('admin-enrich-panel').style.display = 'none';
+  document.getElementById('admin-editor-panel').style.display = 'none';
+  document.getElementById('game-editor-btn').style.display = 'none';
+}
 let _pwdCallback = null;
 
 function checkImportAuth(e, inputId) {
@@ -1414,6 +1539,345 @@ async function init() {
 }
 
 init();
+
+// ── Admin enrichment ──────────────────────────────────────────────
+let enrichIdx = 0;
+let enrichRunning = false;
+
+function openAdminEnrich() {
+  const panel = document.getElementById('admin-enrich-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+async function startEnrichment() {
+  enrichIdx = 0;
+  enrichRunning = true;
+  document.getElementById('enrich-skip').disabled = false;
+  await enrichNext();
+}
+
+async function enrichNext() {
+  if (!enrichRunning || enrichIdx >= words.length) {
+    enrichRunning = false;
+    document.getElementById('enrich-status').textContent = 'Baigta!';
+    document.getElementById('enrich-progress-bar').style.width = '100%';
+    return;
+  }
+  const w = words[enrichIdx];
+  document.getElementById('enrich-status').textContent =
+    `Žodis ${enrichIdx + 1} / ${words.length}: ${w.en}`;
+  document.getElementById('enrich-old').textContent = w.lt || '—';
+  document.getElementById('enrich-new').innerHTML = '<em>Kraunama...</em>';
+  document.getElementById('enrich-accept').disabled = true;
+
+  const pct = Math.round(enrichIdx / words.length * 100);
+  document.getElementById('enrich-progress-bar').style.width = pct + '%';
+
+  try {
+    const translations = await fetchGlosbe(w.en);
+    document.getElementById('enrich-new').textContent = translations || '(nerasta)';
+    document.getElementById('enrich-accept').disabled = !translations;
+  } catch (e) {
+    const msg = e.message && e.message.includes('Failed to fetch')
+      ? 'CORS klaida — bandykite iš lokalaus failo, ne GitHub Pages'
+      : 'Klaida: ' + e.message;
+    document.getElementById('enrich-new').textContent = msg;
+    document.getElementById('enrich-accept').disabled = true;
+  }
+}
+
+async function fetchGlosbe(word) {
+  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|lt`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  const data = await resp.json();
+
+  const seen = new Set();
+  const meanings = [];
+
+  // Collect from matches array, sorted by quality desc
+  const matches = (data.matches || [])
+    .filter(m => m.translation && m.quality >= 50)
+    .sort((a, b) => b.quality - a.quality);
+
+  for (const m of matches) {
+    const t = m.translation.trim();
+    // skip if it's the same as the source word or looks like English
+    if (!t || t.toLowerCase() === word.toLowerCase()) continue;
+    if (!seen.has(t.toLowerCase())) {
+      seen.add(t.toLowerCase());
+      meanings.push(t);
+    }
+    if (meanings.length >= 6) break;
+  }
+
+  // Fallback: top-level responseData
+  if (meanings.length === 0 && data.responseData && data.responseData.translatedText) {
+    const t = data.responseData.translatedText.trim();
+    if (t && t.toLowerCase() !== word.toLowerCase()) meanings.push(t);
+  }
+
+  return meanings.join('; ') || null;
+}
+
+async function enrichAccept() {
+  const newVal = document.getElementById('enrich-new').textContent;
+  if (!newVal || newVal === '(nerasta)') return;
+  words[enrichIdx].lt = newVal;
+  await dbUpdateWordLt(enrichIdx, newVal);
+  enrichIdx++;
+  await enrichNext();
+}
+
+function enrichSkip() {
+  enrichIdx++;
+  enrichNext();
+}
+
+function enrichStop() {
+  enrichRunning = false;
+  document.getElementById('admin-enrich-panel').style.display = 'none';
+}
+
+// ═══════════════════════════════════════
+//  GAME EDITOR MODAL
+// ═══════════════════════════════════════
+let _gemWordIdx = null;
+
+function openGameEditor() {
+  _showGameEditorWithCurrent();
+}
+
+function _showGameEditorWithCurrent() {
+  const idx = queue[currentIdx];
+  _gemWordIdx = idx;
+  const w = words[idx];
+  document.getElementById('gem-title').textContent = `✏️ Redaguoti: ${w.en}`;
+  document.getElementById('gem-nr').value = w.nr || '';
+  document.getElementById('gem-en').value = w.en || '';
+  document.getElementById('gem-transcription').value = w.transcription || '';
+  document.getElementById('gem-lt').value = w.lt || '';
+  document.getElementById('gem-ltOld').value = w.ltOld || '';
+  document.getElementById('gem-example').value = w.example || '';
+  document.getElementById('gem-exampleTrans').value = w.exampleTrans || '';
+  document.getElementById('gem-explanation').value = w.explanation || '';
+  document.getElementById('gem-delete-btn').style.display = 'inline-block';
+  document.getElementById('gem-msg').style.display = 'none';
+  document.getElementById('game-editor-modal').style.display = 'flex';
+}
+
+function gemNewWord() {
+  _gemWordIdx = null;
+  document.getElementById('gem-title').textContent = '＋ Naujas žodis';
+  ['nr','en','transcription','lt','ltOld','example','exampleTrans','explanation']
+    .forEach(f => document.getElementById('gem-' + f).value = '');
+  document.getElementById('gem-delete-btn').style.display = 'none';
+  document.getElementById('gem-msg').style.display = 'none';
+  document.getElementById('gem-en').focus();
+}
+
+async function gemSave() {
+  const record = {
+    nr:            document.getElementById('gem-nr').value.trim(),
+    en:            document.getElementById('gem-en').value.trim(),
+    transcription: document.getElementById('gem-transcription').value.trim(),
+    lt:            document.getElementById('gem-lt').value.trim(),
+    ltOld:         document.getElementById('gem-ltOld').value.trim(),
+    example:       document.getElementById('gem-example').value.trim(),
+    exampleTrans:  document.getElementById('gem-exampleTrans').value.trim(),
+    explanation:   document.getElementById('gem-explanation').value.trim(),
+  };
+  if (!record.en) { gemMsg('Angliškas žodis privalomas.', 'danger'); return; }
+
+  if (_gemWordIdx !== null) {
+    const w = words[_gemWordIdx];
+    Object.assign(w, record);
+    await dbSaveWord({ ...record, dbId: w.dbId });
+    renderQuestion();
+    gemMsg('✓ Išsaugota.', 'success');
+  } else {
+    await dbAddAll([record]);
+    const all = await dbGetAll();
+    words.length = 0; words.push(...all);
+    gemMsg('✓ Žodis pridėtas. Iš viso: ' + words.length, 'success');
+  }
+  renderProgressBar();
+}
+
+async function gemDelete() {
+  if (_gemWordIdx === null) return;
+  const w = words[_gemWordIdx];
+  if (!confirm(`Ištrinti žodį „${w.en}"?`)) return;
+  await dbDeleteWord(w.dbId);
+  words.splice(_gemWordIdx, 1);
+  queue.splice(currentIdx, 1);
+  gemClose();
+  renderProgressBar();
+  renderQuestion();
+}
+
+function gemClose() {
+  document.getElementById('game-editor-modal').style.display = 'none';
+}
+
+function gemMsg(text, type) {
+  const el = document.getElementById('gem-msg');
+  el.style.display = 'block';
+  el.style.color = type === 'danger' ? 'var(--danger)' : 'var(--success)';
+  el.textContent = text;
+}
+
+// ═══════════════════════════════════════
+//  DB EDITOR
+// ═══════════════════════════════════════
+let editorWordIdx = null; // null = new word
+
+function openAdminEditor() {
+  const panel = document.getElementById('admin-editor-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  editorCancel();
+}
+
+function editorSearch() {
+  const q = document.getElementById('editor-search').value.trim().toLowerCase();
+  const results = document.getElementById('editor-search-results');
+  if (!q) { results.style.display = 'none'; return; }
+  const matches = words
+    .map((w, i) => ({ w, i }))
+    .filter(({ w }) => (w.en||'').toLowerCase().includes(q) || (w.lt||'').toLowerCase().includes(q))
+    .slice(0, 30);
+  if (!matches.length) { results.style.display = 'none'; return; }
+  results.style.display = 'block';
+  results.innerHTML = matches.map(({ w, i }) =>
+    `<div onclick="editorLoad(${i})" style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:0.88rem;"
+      onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background=''">
+      <strong>${escHtml(w.en)}</strong> <span style="color:var(--text-muted)">${escHtml((w.lt||'').substring(0,60))}</span>
+    </div>`
+  ).join('');
+}
+
+function editorLoad(idx) {
+  editorWordIdx = idx;
+  const w = words[idx];
+  document.getElementById('editor-search-results').style.display = 'none';
+  document.getElementById('editor-search').value = w.en;
+  document.getElementById('editor-form-title').textContent = `Redaguoti: ${w.en} (DB #${w.nr})`;
+  document.getElementById('ef-nr').value = w.nr || '';
+  document.getElementById('ef-en').value = w.en || '';
+  document.getElementById('ef-transcription').value = w.transcription || '';
+  document.getElementById('ef-lt').value = w.lt || '';
+  document.getElementById('ef-ltOld').value = w.ltOld || '';
+  document.getElementById('ef-example').value = w.example || '';
+  document.getElementById('ef-exampleTrans').value = w.exampleTrans || '';
+  document.getElementById('ef-explanation').value = w.explanation || '';
+  document.getElementById('editor-delete-btn').style.display = 'inline-block';
+  document.getElementById('editor-form').style.display = 'block';
+  editorMsg('');
+}
+
+function editorNewWord() {
+  editorWordIdx = null;
+  document.getElementById('editor-search').value = '';
+  document.getElementById('editor-search-results').style.display = 'none';
+  document.getElementById('editor-form-title').textContent = 'Naujas žodis';
+  ['nr','en','transcription','lt','ltOld','example','exampleTrans','explanation']
+    .forEach(f => document.getElementById('ef-' + f).value = '');
+  document.getElementById('editor-delete-btn').style.display = 'none';
+  document.getElementById('editor-form').style.display = 'block';
+  document.getElementById('ef-en').focus();
+  editorMsg('');
+}
+
+function editorCancel() {
+  document.getElementById('editor-form').style.display = 'none';
+  document.getElementById('editor-search-results').style.display = 'none';
+  editorWordIdx = null;
+}
+
+async function editorSave() {
+  const record = {
+    nr:           document.getElementById('ef-nr').value.trim(),
+    en:           document.getElementById('ef-en').value.trim(),
+    transcription:document.getElementById('ef-transcription').value.trim(),
+    lt:           document.getElementById('ef-lt').value.trim(),
+    ltOld:        document.getElementById('ef-ltOld').value.trim(),
+    example:      document.getElementById('ef-example').value.trim(),
+    exampleTrans: document.getElementById('ef-exampleTrans').value.trim(),
+    explanation:  document.getElementById('ef-explanation').value.trim(),
+  };
+  if (!record.en) { editorMsg('Angliškas žodis privalomas.', 'danger'); return; }
+
+  if (editorWordIdx !== null) {
+    // Update existing
+    const w = words[editorWordIdx];
+    Object.assign(w, record);
+    await dbSaveWord({ ...record, dbId: w.dbId });
+    editorMsg('✓ Išsaugota.', 'success');
+  } else {
+    // Add new
+    const newWord = { ...record };
+    await dbAddAll([newWord]);
+    // Re-read DB to get new dbId
+    const all = await dbGetAll();
+    words.length = 0;
+    words.push(...all);
+    editorMsg('✓ Naujas žodis pridėtas. Iš viso: ' + words.length, 'success');
+  }
+  renderProgressBar();
+}
+
+async function editorDelete() {
+  if (editorWordIdx === null) return;
+  const w = words[editorWordIdx];
+  if (!confirm(`Ištrinti žodį „${w.en}"?`)) return;
+  await dbDeleteWord(w.dbId);
+  words.splice(editorWordIdx, 1);
+  editorCancel();
+  editorMsg('');
+  renderProgressBar();
+  document.getElementById('editor-search').value = '';
+  editorMsg('✓ Žodis ištrintas.', 'success');
+}
+
+function editorMsg(text, type) {
+  const el = document.getElementById('editor-msg');
+  if (!text) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  el.style.color = type === 'danger' ? 'var(--danger)' : 'var(--success)';
+  el.textContent = text;
+}
+
+function dbSaveWord(record) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('words', 'readwrite');
+    tx.objectStore('words').put(record);
+    tx.oncomplete = resolve;
+    tx.onerror = e => reject(e.target.error);
+  });
+}
+
+function dbDeleteWord(dbId) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('words', 'readwrite');
+    tx.objectStore('words').delete(dbId);
+    tx.oncomplete = resolve;
+    tx.onerror = e => reject(e.target.error);
+  });
+}
+
+function dbUpdateWordLt(wordIdx, newLt) {
+  return new Promise((resolve, reject) => {
+    const w = words[wordIdx];
+    const tx = db.transaction('words', 'readwrite');
+    const req = tx.objectStore('words').get(w.dbId || w.nr);
+    req.onsuccess = e => {
+      const rec = e.target.result;
+      if (rec) { rec.lt = newLt; tx.objectStore('words').put(rec); }
+    };
+    tx.oncomplete = resolve;
+    tx.onerror = e => reject(e.target.error);
+  });
+}
 </script>
 </body>
 </html>
