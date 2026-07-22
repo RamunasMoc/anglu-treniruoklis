@@ -464,11 +464,13 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <button type="button" class="btn btn-ghost" style="font-size:0.78rem;padding:4px 10px;" onclick="adminLogout()">Atsijungti</button>
     </div>
 
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;">
-      <input id="claude-api-key" type="password" class="answer-input" placeholder="OpenRouter API raktas (sk-or-…)" style="flex:1;font-size:0.82rem;"
-        oninput="localStorage.setItem('claudeApiKey', this.value)">
-      <button type="button" class="btn btn-ghost" style="font-size:0.78rem;padding:4px 10px;white-space:nowrap;" onclick="document.getElementById('claude-api-key').type=document.getElementById('claude-api-key').type==='password'?'text':'password'">👁</button>
-      <button type="button" class="btn btn-ghost" style="font-size:0.78rem;padding:4px 10px;white-space:nowrap;" onclick="geminiListModels()">🔍 Modeliai</button>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:4px;">🤖 OpenRouter API raktas — reikalingas AI Auto-fill funkcijai (<a href="https://openrouter.ai/keys" target="_blank" style="color:var(--accent);">gauti raktą</a>)</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input id="claude-api-key" type="password" class="answer-input" placeholder="sk-or-…" style="flex:1;font-size:0.82rem;"
+          oninput="localStorage.setItem('claudeApiKey', this.value)">
+        <button type="button" class="btn btn-ghost" style="font-size:0.78rem;padding:4px 10px;white-space:nowrap;" onclick="document.getElementById('claude-api-key').type=document.getElementById('claude-api-key').type==='password'?'text':'password'">👁</button>
+      </div>
     </div>
 
     <div id="export-section">
@@ -482,37 +484,6 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         </button>
       </div>
     </div>
-
-  <!-- Admin enrichment panel — hidden until authorized -->
-  <div id="admin-enrich-panel" style="display:none; margin-top:0;">
-    <div class="card" style="padding:18px 20px;">
-      <div style="font-weight:700;font-size:1.05rem;margin-bottom:12px;">🔧 Žodžių reikšmių papildymas</div>
-      <div id="enrich-status" style="font-size:0.9rem;color:var(--text-muted);margin-bottom:14px;">Paspauskite „Pradėti" norėdami pradėti.</div>
-
-      <div style="display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap;">
-        <div style="flex:1;min-width:140px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;">
-          <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:4px;">Dabartinė reikšmė:</div>
-          <div id="enrich-old" style="font-size:0.92rem;">—</div>
-        </div>
-        <div style="flex:1;min-width:140px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;">
-          <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:4px;">Nauja reikšmė (Glosbe):</div>
-          <div id="enrich-new" style="font-size:0.92rem;">—</div>
-        </div>
-      </div>
-
-      <!-- Progress bar wrapper -->
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);height:8px;margin-bottom:14px;overflow:hidden;">
-        <div id="enrich-progress-bar" style="height:100%;width:0%;background:var(--accent);transition:width 0.3s;"></div>
-      </div>
-
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-primary" style="flex:1;" onclick="startEnrichment()">▶ Pradėti papildymą</button>
-        <button class="btn btn-primary" id="enrich-accept" style="flex:1;background:var(--success);border-color:var(--success);" onclick="enrichAccept()" disabled>✓ Pakeisti</button>
-        <button class="btn btn-ghost" id="enrich-skip" style="flex:1;" onclick="enrichSkip()">✗ Palikti</button>
-        <button class="btn btn-ghost" style="flex:1;border-color:var(--danger);color:var(--danger);" onclick="enrichStop()">⏹ Sustabdyti</button>
-      </div>
-    </div>
-  </div>
 
   <!-- DB Editor panel -->
   <div id="admin-editor-panel" style="display:none;margin-top:16px;">
@@ -553,7 +524,6 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   </div>
 
     <div style="display:flex;gap:8px;margin-top:10px;">
-      <button class="btn btn-ghost" style="flex:1;font-size:0.88rem;" onclick="openAdminEnrich()">🔧 Reikšmių papildymas</button>
       <button class="btn btn-ghost" style="flex:1;font-size:0.88rem;" onclick="openAdminEditor()">📝 DB redaktorius</button>
     </div>
 
@@ -1558,131 +1528,17 @@ init();
   }
 })();
 
-// ── Admin enrichment ──────────────────────────────────────────────
-let enrichIdx = 0;
-let enrichRunning = false;
-
-function openAdminEnrich() {
-  const panel = document.getElementById('admin-enrich-panel');
-  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-}
-
-async function startEnrichment() {
-  enrichIdx = 0;
-  enrichRunning = true;
-  document.getElementById('enrich-skip').disabled = false;
-  await enrichNext();
-}
-
-async function enrichNext() {
-  if (!enrichRunning || enrichIdx >= words.length) {
-    enrichRunning = false;
-    document.getElementById('enrich-status').textContent = 'Baigta!';
-    document.getElementById('enrich-progress-bar').style.width = '100%';
-    return;
-  }
-  const w = words[enrichIdx];
-  document.getElementById('enrich-status').textContent =
-    `Žodis ${enrichIdx + 1} / ${words.length}: ${w.en}`;
-  document.getElementById('enrich-old').textContent = w.lt || '—';
-  document.getElementById('enrich-new').innerHTML = '<em>Kraunama...</em>';
-  document.getElementById('enrich-accept').disabled = true;
-
-  const pct = Math.round(enrichIdx / words.length * 100);
-  document.getElementById('enrich-progress-bar').style.width = pct + '%';
-
-  try {
-    const translations = await fetchGlosbe(w.en);
-    document.getElementById('enrich-new').textContent = translations || '(nerasta)';
-    document.getElementById('enrich-accept').disabled = !translations;
-  } catch (e) {
-    const msg = e.message && e.message.includes('Failed to fetch')
-      ? 'CORS klaida — bandykite iš lokalaus failo, ne GitHub Pages'
-      : 'Klaida: ' + e.message;
-    document.getElementById('enrich-new').textContent = msg;
-    document.getElementById('enrich-accept').disabled = true;
-  }
-}
-
-async function fetchGlosbe(word) {
-  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|lt`;
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error('HTTP ' + resp.status);
-  const data = await resp.json();
-
-  const seen = new Set();
-  const meanings = [];
-
-  // Collect from matches array, sorted by quality desc
-  const matches = (data.matches || [])
-    .filter(m => m.translation && m.quality >= 50)
-    .sort((a, b) => b.quality - a.quality);
-
-  for (const m of matches) {
-    const t = m.translation.trim();
-    // skip if it's the same as the source word or looks like English
-    if (!t || t.toLowerCase() === word.toLowerCase()) continue;
-    if (!seen.has(t.toLowerCase())) {
-      seen.add(t.toLowerCase());
-      meanings.push(t);
-    }
-    if (meanings.length >= 6) break;
-  }
-
-  // Fallback: top-level responseData
-  if (meanings.length === 0 && data.responseData && data.responseData.translatedText) {
-    const t = data.responseData.translatedText.trim();
-    if (t && t.toLowerCase() !== word.toLowerCase()) meanings.push(t);
-  }
-
-  return meanings.join('; ') || null;
-}
-
-async function enrichAccept() {
-  const newVal = document.getElementById('enrich-new').textContent;
-  if (!newVal || newVal === '(nerasta)') return;
-  words[enrichIdx].lt = newVal;
-  await dbUpdateWordLt(enrichIdx, newVal);
-  enrichIdx++;
-  await enrichNext();
-}
-
-function enrichSkip() {
-  enrichIdx++;
-  enrichNext();
-}
-
-function enrichStop() {
-  enrichRunning = false;
-  document.getElementById('admin-enrich-panel').style.display = 'none';
-}
 
 // ═══════════════════════════════════════
-//  GEMINI AI AUTO-FILL
+//  AI AUTO-FILL (OpenRouter)
 // ═══════════════════════════════════════
-async function geminiListModels() {
-  const apiKey = (document.getElementById('claude-api-key') || {}).value
-    || localStorage.getItem('claudeApiKey') || '';
-  if (!apiKey) { alert('Įveskite API raktą.'); return; }
-  try {
-    const resp = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`);
-    const data = await resp.json();
-    if (data.error) { alert('Klaida: ' + data.error.message); return; }
-    const names = (data.models || [])
-      .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
-      .map(m => m.name)
-      .join('\n');
-    alert('Prieinami modeliai:\n' + (names || '(nėra)'));
-  } catch(e) { alert('Klaida: ' + e.message); }
-}
-
 async function claudeAutofill(prefix) {
   const enWord = document.getElementById(prefix + '-en').value.trim();
   if (!enWord) { alert('Pirmiausia įveskite anglišką žodį.'); return; }
 
   const apiKey = (document.getElementById('claude-api-key') || {}).value
     || localStorage.getItem('claudeApiKey') || '';
-  if (!apiKey) { alert('Įveskite Gemini API raktą administratoriaus zonoje.'); return; }
+  if (!apiKey) { alert('Įveskite OpenRouter API raktą administratoriaus zonoje.'); return; }
 
   const btnId = prefix + '-ai-btn';
   const btn = document.getElementById(btnId);
