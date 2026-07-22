@@ -357,6 +357,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <button type="button" class="btn btn-ghost" style="flex:1;" onclick="gemNewWord()">＋ Naujas</button>
       <button type="button" class="btn btn-ghost" style="flex:1;" onclick="gemClose()">✕ Uždaryti</button>
     </div>
+    <button type="button" class="btn btn-ghost" style="width:100%;margin-top:8px;font-size:0.88rem;" id="gem-ai-btn" onclick="claudeAutofill('gem')">🤖 AI Auto-fill</button>
     <div id="gem-msg" style="margin-top:8px;font-size:0.85rem;display:none;"></div>
   </div>
 </div>
@@ -463,6 +464,13 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <button type="button" class="btn btn-ghost" style="font-size:0.78rem;padding:4px 10px;" onclick="adminLogout()">Atsijungti</button>
     </div>
 
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;">
+      <input id="claude-api-key" type="password" class="answer-input" placeholder="OpenRouter API raktas (sk-or-…)" style="flex:1;font-size:0.82rem;"
+        oninput="localStorage.setItem('claudeApiKey', this.value)">
+      <button type="button" class="btn btn-ghost" style="font-size:0.78rem;padding:4px 10px;white-space:nowrap;" onclick="document.getElementById('claude-api-key').type=document.getElementById('claude-api-key').type==='password'?'text':'password'">👁</button>
+      <button type="button" class="btn btn-ghost" style="font-size:0.78rem;padding:4px 10px;white-space:nowrap;" onclick="geminiListModels()">🔍 Modeliai</button>
+    </div>
+
     <div id="export-section">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
         <div>
@@ -538,6 +546,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
           <button type="button" class="btn btn-ghost" style="flex:1;border-color:var(--danger);color:var(--danger);" id="editor-delete-btn" onclick="editorDelete()">🗑 Ištrinti</button>
           <button type="button" class="btn btn-ghost" style="flex:1;" onclick="editorCancel()">✕ Atšaukti</button>
         </div>
+        <button type="button" class="btn btn-ghost" style="width:100%;margin-top:8px;font-size:0.88rem;" id="ef-ai-btn" onclick="claudeAutofill('ef')">🤖 AI Auto-fill</button>
         <div id="editor-msg" style="margin-top:8px;font-size:0.85rem;display:none;"></div>
       </div>
     </div>
@@ -1540,6 +1549,15 @@ async function init() {
 
 init();
 
+// Restore saved API key
+(function() {
+  const saved = localStorage.getItem('claudeApiKey');
+  if (saved) {
+    const el = document.getElementById('claude-api-key');
+    if (el) el.value = saved;
+  }
+})();
+
 // ── Admin enrichment ──────────────────────────────────────────────
 let enrichIdx = 0;
 let enrichRunning = false;
@@ -1640,6 +1658,93 @@ function enrichStop() {
 }
 
 // ═══════════════════════════════════════
+//  GEMINI AI AUTO-FILL
+// ═══════════════════════════════════════
+async function geminiListModels() {
+  const apiKey = (document.getElementById('claude-api-key') || {}).value
+    || localStorage.getItem('claudeApiKey') || '';
+  if (!apiKey) { alert('Įveskite API raktą.'); return; }
+  try {
+    const resp = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`);
+    const data = await resp.json();
+    if (data.error) { alert('Klaida: ' + data.error.message); return; }
+    const names = (data.models || [])
+      .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
+      .map(m => m.name)
+      .join('\n');
+    alert('Prieinami modeliai:\n' + (names || '(nėra)'));
+  } catch(e) { alert('Klaida: ' + e.message); }
+}
+
+async function claudeAutofill(prefix) {
+  const enWord = document.getElementById(prefix + '-en').value.trim();
+  if (!enWord) { alert('Pirmiausia įveskite anglišką žodį.'); return; }
+
+  const apiKey = (document.getElementById('claude-api-key') || {}).value
+    || localStorage.getItem('claudeApiKey') || '';
+  if (!apiKey) { alert('Įveskite Gemini API raktą administratoriaus zonoje.'); return; }
+
+  const btnId = prefix + '-ai-btn';
+  const btn = document.getElementById(btnId);
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '⏳ Kraunama…';
+
+  const prompt = `Fill in the following fields for the English word "${enWord}". Reply ONLY with a JSON object with these exact keys: transcription, lt, ltOld, example, exampleTrans, explanation.
+- transcription: IPA pronunciation (e.g. /wɜːrd/)
+- lt: Lithuanian translation(s), semicolon-separated if multiple meanings
+- ltOld: alternative/archaic Lithuanian translation (if none, empty string)
+- example: one short example sentence in English using the word
+- exampleTrans: Lithuanian translation of the example sentence
+- explanation: brief English definition or usage note (1-2 sentences)
+
+Reply with only the JSON, no markdown fences.`;
+
+  try {
+    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey,
+      },
+      body: JSON.stringify({
+        model: 'meta-llama/llama-3.1-8b-instruct',
+        max_tokens: 512,
+        temperature: 0.2,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      const msg = err.error && err.error.message ? err.error.message : 'HTTP ' + resp.status;
+      throw new Error(msg);
+    }
+
+    const data = await resp.json();
+    const text = data.choices && data.choices[0] &&
+      data.choices[0].message && data.choices[0].message.content;
+    if (!text) throw new Error('Tuščias atsakymas');
+
+    let parsed;
+    try { parsed = JSON.parse(text); }
+    catch { throw new Error('Nepavyko išanalizuoti JSON: ' + text.substring(0, 120)); }
+
+    const fields = ['transcription', 'lt', 'ltOld', 'example', 'exampleTrans', 'explanation'];
+    fields.forEach(f => {
+      const el = document.getElementById(prefix + '-' + f);
+      if (el && parsed[f] !== undefined) el.value = parsed[f];
+    });
+
+  } catch (e) {
+    alert('Klaida: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
+// ═══════════════════════════════════════
 //  GAME EDITOR MODAL
 // ═══════════════════════════════════════
 let _gemWordIdx = null;
@@ -1666,11 +1771,17 @@ function _showGameEditorWithCurrent() {
   document.getElementById('game-editor-modal').style.display = 'flex';
 }
 
+function nextNr() {
+  const max = words.reduce((m, w) => Math.max(m, parseInt(w.nr) || 0), 0);
+  return String(max + 1);
+}
+
 function gemNewWord() {
   _gemWordIdx = null;
   document.getElementById('gem-title').textContent = '＋ Naujas žodis';
   ['nr','en','transcription','lt','ltOld','example','exampleTrans','explanation']
     .forEach(f => document.getElementById('gem-' + f).value = '');
+  document.getElementById('gem-nr').value = nextNr();
   document.getElementById('gem-delete-btn').style.display = 'none';
   document.getElementById('gem-msg').style.display = 'none';
   document.getElementById('gem-en').focus();
@@ -1782,6 +1893,7 @@ function editorNewWord() {
   document.getElementById('editor-form-title').textContent = 'Naujas žodis';
   ['nr','en','transcription','lt','ltOld','example','exampleTrans','explanation']
     .forEach(f => document.getElementById('ef-' + f).value = '');
+  document.getElementById('ef-nr').value = nextNr();
   document.getElementById('editor-delete-btn').style.display = 'none';
   document.getElementById('editor-form').style.display = 'block';
   document.getElementById('ef-en').focus();
