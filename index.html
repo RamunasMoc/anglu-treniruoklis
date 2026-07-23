@@ -507,6 +507,27 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <div class="card" style="padding:18px 20px;">
       <div style="font-weight:700;font-size:1.05rem;margin-bottom:14px;">📝 DB redaktorius</div>
 
+      <!-- Navigation strip -->
+      <div style="margin-bottom:12px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);">
+        <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:6px;">Naršymas per įrašus:</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;" id="editor-nav-filter-btns">
+          <button class="type-filter-btn selected" data-type="all" onclick="editorNavSetFilter('all')">📚 Visi</button>
+          <button class="type-filter-btn" data-type="noun" onclick="editorNavSetFilter('noun')">🏷 Daiktavardžiai</button>
+          <button class="type-filter-btn" data-type="verb" onclick="editorNavSetFilter('verb')">⚡ Veiksmažodžiai</button>
+          <button class="type-filter-btn" data-type="irregular" onclick="editorNavSetFilter('irregular')">🔀 Netaisyklingi</button>
+          <button class="type-filter-btn" data-type="adjective" onclick="editorNavSetFilter('adjective')">🎨 Būdvardžiai</button>
+          <button class="type-filter-btn" data-type="adverb" onclick="editorNavSetFilter('adverb')">💨 Prieveiksmiai</button>
+          <button class="type-filter-btn" data-type="phrase" onclick="editorNavSetFilter('phrase')">💬 Frazės</button>
+          <button class="type-filter-btn" data-type="other" onclick="editorNavSetFilter('other')">🔹 Kita</button>
+          <button class="type-filter-btn" data-type="none" onclick="editorNavSetFilter('none')">❓ Be tipo</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button type="button" class="btn btn-ghost" style="padding:4px 14px;font-size:1rem;" onclick="editorNavPrev()">←</button>
+          <span id="editor-nav-counter" style="flex:1;text-align:center;font-size:0.82rem;color:var(--text-muted);">—</span>
+          <button type="button" class="btn btn-ghost" style="padding:4px 14px;font-size:1rem;" onclick="editorNavNext()">→</button>
+        </div>
+      </div>
+
       <!-- Search -->
       <div style="display:flex;gap:8px;margin-bottom:14px;">
         <input id="editor-search" type="text" class="answer-input" placeholder="Ieškoti žodžio (EN arba LT)…" style="flex:1;" oninput="editorSearch()">
@@ -2035,10 +2056,80 @@ function gemMsg(text, type) {
 // ═══════════════════════════════════════
 let editorWordIdx = null; // null = new word
 
+// ── Editor navigation ──────────────────────────────────────────────
+let editorNavFilter = 'all';
+let editorNavList   = [];   // indices into words[]
+let editorNavPos    = -1;   // current position in editorNavList
+
+function editorNavBuild() {
+  if (editorNavFilter === 'all') {
+    editorNavList = words.map((_, i) => i);
+  } else if (editorNavFilter === 'none') {
+    editorNavList = words.reduce((a, w, i) => { if (!w.wordType) a.push(i); return a; }, []);
+  } else {
+    editorNavList = words.reduce((a, w, i) => {
+      if (wordTypesFromString(w.wordType).includes(editorNavFilter)) a.push(i);
+      return a;
+    }, []);
+  }
+}
+
+function editorNavUpdateUI() {
+  const total = editorNavList.length;
+  const pos   = editorNavPos >= 0 && total > 0 ? editorNavPos + 1 : 0;
+  document.getElementById('editor-nav-counter').textContent =
+    total ? `${pos} / ${total}` : 'Nėra įrašų';
+}
+
+function editorNavSetFilter(type) {
+  editorNavFilter = type;
+  document.querySelectorAll('#editor-nav-filter-btns .type-filter-btn')
+    .forEach(b => b.classList.toggle('selected', b.dataset.type === type));
+  editorNavBuild();
+  // Try to keep current word selected; else go to first
+  if (editorWordIdx !== null) {
+    const pos = editorNavList.indexOf(editorWordIdx);
+    editorNavPos = pos >= 0 ? pos : (editorNavList.length ? 0 : -1);
+  } else {
+    editorNavPos = editorNavList.length ? 0 : -1;
+  }
+  if (editorNavPos >= 0) editorNavLoad(editorNavPos);
+  else editorNavUpdateUI();
+}
+
+function editorNavLoad(pos) {
+  if (pos < 0 || pos >= editorNavList.length) return;
+  editorNavPos = pos;
+  editorNavUpdateUI();
+  editorLoad(editorNavList[pos]);
+}
+
+function editorNavPrev() {
+  editorNavBuild();
+  if (!editorNavList.length) return;
+  editorNavPos = editorNavPos <= 0 ? editorNavList.length - 1 : editorNavPos - 1;
+  editorNavLoad(editorNavPos);
+}
+
+function editorNavNext() {
+  editorNavBuild();
+  if (!editorNavList.length) return;
+  editorNavPos = editorNavPos >= editorNavList.length - 1 ? 0 : editorNavPos + 1;
+  editorNavLoad(editorNavPos);
+}
+
 function openAdminEditor() {
   const panel = document.getElementById('admin-editor-panel');
   panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-  editorCancel();
+  if (panel.style.display === 'block') {
+    editorNavBuild();
+    editorNavPos = editorNavList.length ? 0 : -1;
+    editorNavUpdateUI();
+    if (editorNavPos >= 0) editorNavLoad(editorNavPos);
+    else editorCancel();
+  } else {
+    editorCancel();
+  }
 }
 
 function editorSearch() {
@@ -2064,6 +2155,11 @@ function editorLoad(idx) {
   const w = words[idx];
   document.getElementById('editor-search-results').style.display = 'none';
   document.getElementById('editor-search').value = w.en;
+  // Sync nav position
+  editorNavBuild();
+  const navPos = editorNavList.indexOf(idx);
+  if (navPos >= 0) editorNavPos = navPos;
+  editorNavUpdateUI();
   document.getElementById('editor-form-title').textContent = `Redaguoti: ${w.en} (DB #${w.nr})`;
   document.getElementById('ef-nr').value = w.nr || '';
   setWordTypeBtns('ef', w.wordType || '');
