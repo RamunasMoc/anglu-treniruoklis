@@ -1055,6 +1055,36 @@ function detectWordTypes(w) {
   return types.size > 0 ? [...types] : ['other'];
 }
 
+// --- wordType localStorage store (survives page reload in online version) ---
+const WTS_KEY = 'wordTypeStore';
+
+function wtsGet() {
+  try { return JSON.parse(localStorage.getItem(WTS_KEY) || '{}'); } catch { return {}; }
+}
+
+function wtsSet(nr, typeStr) {
+  if (!nr && nr !== 0) return;
+  const store = wtsGet();
+  if (typeStr) store[String(nr)] = typeStr; else delete store[String(nr)];
+  localStorage.setItem(WTS_KEY, JSON.stringify(store));
+}
+
+function wtsClearAll() { localStorage.removeItem(WTS_KEY); }
+
+function mergeWordTypes() {
+  const store = wtsGet();
+  words.forEach(w => {
+    const key = String(w.nr);
+    if (w.wordType && !store[key]) wtsSet(w.nr, w.wordType); // sync to store
+    else if (!w.wordType && store[key]) w.wordType = store[key]; // restore from store
+  });
+}
+
+function saveWordType(w) {
+  wtsSet(w.nr, w.wordType);
+  if (w.dbId) dbSaveWord({ ...w });
+}
+
 // --- wordType stored as comma-separated string, e.g. "noun,verb" ---
 
 function wordTypesToString(arr) { return arr.join(','); }
@@ -1106,7 +1136,7 @@ async function refineWordTypeAI(w) {
     const newType = valid.join(',');
     if (newType === w.wordType) return;
     w.wordType = newType;
-    if (w.dbId) dbSaveWord({ ...w });
+    saveWordType(w);
     // Update type buttons in editor if this word is currently open
     if (_gemWordIdx !== null && words[_gemWordIdx] === w) setWordTypeBtns('gem', newType);
     if (typeof editorWordIdx !== 'undefined' && editorWordIdx !== null && words[editorWordIdx] === w)
@@ -1196,7 +1226,7 @@ async function bulkSetTypes() {
     if (!w.wordType) {
       w.wordType = wordTypesToString(detectWordTypes(w));
     }
-    if (w.dbId) dbSaveWord({ ...w });
+    saveWordType(w);
     done++;
   }
 
@@ -1214,6 +1244,7 @@ async function bulkClearTypes() {
     w._aiTyped = false;
     if (w.dbId) dbSaveWord({ ...w });
   }
+  wtsClearAll();
   document.getElementById('types-status').textContent = `✓ Tipai ištrinti visiems ${words.length} žodžiams.`;
   document.getElementById('types-progress-bar').style.width = '0%';
   refreshTypesStats();
@@ -1350,7 +1381,7 @@ function renderQuestion() {
     const w = words[queue[currentIdx]];
     if (!w.wordType) {
       w.wordType = wordTypesToString(detectWordTypes(w));
-      if (w.dbId) dbSaveWord({ ...w });
+      saveWordType(w);
     }
     if (wordMatchesFilter(w)) break;
     currentIdx++;
@@ -1855,6 +1886,7 @@ async function init() {
       const json = await res.json();
       if (Array.isArray(json) && json.length) {
         words = json;
+        mergeWordTypes();
         setStatus(`✓ Žodynas užkrautas iš words.json — ${words.length} žodžiai`, 'ok');
         document.getElementById('start-btn').disabled = false;
         document.getElementById('weak-btn').disabled = false;
@@ -1866,6 +1898,7 @@ async function init() {
 
   // 2. Jei words.json nepasiekiamas — IndexedDB (lokalus naudojimas)
   await loadWordsFromDB();
+  mergeWordTypes();
   await loadScores();
 }
 
