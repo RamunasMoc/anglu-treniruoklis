@@ -128,6 +128,12 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   }
   .mode-btn:hover { border-color: var(--accent); background: var(--accent-glow); }
   .mode-btn.selected { border-color: var(--accent); background: var(--accent-glow); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .type-filter-btn { padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 0.82rem; cursor: pointer; transition: all .15s; }
+  .type-filter-btn:hover { border-color: var(--accent); background: var(--accent-glow); }
+  .type-filter-btn.selected { border-color: var(--accent); background: var(--accent-glow); color: var(--accent); font-weight: 600; }
+  .wtype-btn { padding: 4px 10px; border-radius: 16px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-muted); font-size: 0.78rem; cursor: pointer; transition: all .15s; }
+  .wtype-btn:hover { border-color: var(--accent); }
+  .wtype-btn.active { border-color: var(--accent); background: var(--accent-glow); color: var(--accent); font-weight: 600; }
   .mode-btn .mode-icon { font-size: 1.8rem; margin-bottom: 8px; }
   .mode-btn .mode-label { font-weight: 600; }
   .mode-btn .mode-desc { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
@@ -343,6 +349,17 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <div style="font-weight:700;font-size:1.05rem;margin-bottom:14px;" id="gem-title">✏️ Redaguoti žodį</div>
     <div style="display:grid;gap:10px;">
       <div><label style="font-size:0.78rem;color:var(--text-muted);">Nr.</label><input id="gem-nr" class="answer-input" style="width:100%;margin-top:3px;"></div>
+      <div><label style="font-size:0.78rem;color:var(--text-muted);">Žodžio tipas (galima keletas)</label>
+        <div id="gem-wordType-btns" style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;">
+          <button type="button" class="wtype-btn" data-type="noun" onclick="toggleWordTypeBtn('gem',this)">🏷 Daiktavardis</button>
+          <button type="button" class="wtype-btn" data-type="verb" onclick="toggleWordTypeBtn('gem',this)">⚡ Veiksmažodis</button>
+          <button type="button" class="wtype-btn" data-type="irregular" onclick="toggleWordTypeBtn('gem',this)">🔀 Netaisyklingas</button>
+          <button type="button" class="wtype-btn" data-type="adjective" onclick="toggleWordTypeBtn('gem',this)">🎨 Būdvardis</button>
+          <button type="button" class="wtype-btn" data-type="adverb" onclick="toggleWordTypeBtn('gem',this)">💨 Prieveiksmis</button>
+          <button type="button" class="wtype-btn" data-type="phrase" onclick="toggleWordTypeBtn('gem',this)">💬 Frazė</button>
+          <button type="button" class="wtype-btn" data-type="other" onclick="toggleWordTypeBtn('gem',this)">🔹 Kita</button>
+        </div>
+      </div>
       <div><label style="font-size:0.78rem;color:var(--text-muted);">Angliškas žodis</label><input id="gem-en" class="answer-input" style="width:100%;margin-top:3px;"></div>
       <div><label style="font-size:0.78rem;color:var(--text-muted);">Transkripcija</label><input id="gem-transcription" class="answer-input" style="width:100%;margin-top:3px;"></div>
       <div><label style="font-size:0.78rem;color:var(--text-muted);">Lietuviškas vertimas</label><textarea id="gem-lt" class="answer-input" style="width:100%;margin-top:3px;height:64px;resize:vertical;"></textarea></div>
@@ -504,6 +521,17 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:10px;" id="editor-form-title">Redaguoti žodį</div>
         <div style="display:grid;gap:10px;">
           <div><label style="font-size:0.78rem;color:var(--text-muted);">Nr.</label><input id="ef-nr" class="answer-input" style="width:100%;margin-top:3px;" placeholder="Nr."></div>
+          <div><label style="font-size:0.78rem;color:var(--text-muted);">Žodžio tipas (galima keletas)</label>
+            <div id="ef-wordType-btns" style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;">
+              <button type="button" class="wtype-btn" data-type="noun" onclick="toggleWordTypeBtn('ef',this)">🏷 Daiktavardis</button>
+              <button type="button" class="wtype-btn" data-type="verb" onclick="toggleWordTypeBtn('ef',this)">⚡ Veiksmažodis</button>
+              <button type="button" class="wtype-btn" data-type="irregular" onclick="toggleWordTypeBtn('ef',this)">🔀 Netaisyklingas</button>
+              <button type="button" class="wtype-btn" data-type="adjective" onclick="toggleWordTypeBtn('ef',this)">🎨 Būdvardis</button>
+              <button type="button" class="wtype-btn" data-type="adverb" onclick="toggleWordTypeBtn('ef',this)">💨 Prieveiksmis</button>
+              <button type="button" class="wtype-btn" data-type="phrase" onclick="toggleWordTypeBtn('ef',this)">💬 Frazė</button>
+              <button type="button" class="wtype-btn" data-type="other" onclick="toggleWordTypeBtn('ef',this)">🔹 Kita</button>
+            </div>
+          </div>
           <div><label style="font-size:0.78rem;color:var(--text-muted);">Angliškas žodis</label><input id="ef-en" class="answer-input" style="width:100%;margin-top:3px;" placeholder="English word"></div>
           <div><label style="font-size:0.78rem;color:var(--text-muted);">Transkripcija</label><input id="ef-transcription" class="answer-input" style="width:100%;margin-top:3px;" placeholder="/trænˈskrɪpʃən/"></div>
           <div><label style="font-size:0.78rem;color:var(--text-muted);">Lietuviškas vertimas</label><textarea id="ef-lt" class="answer-input" style="width:100%;margin-top:3px;height:64px;resize:vertical;" placeholder="vertimas; reikšmė"></textarea></div>
@@ -523,8 +551,26 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     </div>
   </div>
 
-    <div style="display:flex;gap:8px;margin-top:10px;">
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
       <button class="btn btn-ghost" style="flex:1;font-size:0.88rem;" onclick="openAdminEditor()">📝 DB redaktorius</button>
+      <button class="btn btn-ghost" style="flex:1;font-size:0.88rem;" onclick="openTypesPanel()">🏷 Žodžių tipai</button>
+    </div>
+
+    <!-- Types management panel -->
+    <div id="admin-types-panel" style="display:none;margin-top:14px;">
+      <div class="card" style="padding:16px 18px;">
+        <div style="font-weight:700;font-size:1rem;margin-bottom:10px;">🏷 Žodžių tipų valdymas</div>
+        <div id="types-stats" style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+          <button class="btn btn-primary" style="flex:1;" onclick="bulkSetTypes()">⚙ Nustatyti trūkstamus tipus</button>
+          <button class="btn btn-ghost" style="flex:1;border-color:var(--danger);color:var(--danger);" onclick="bulkClearTypes()">🗑 Ištrinti visų tipus</button>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);height:8px;margin-bottom:8px;overflow:hidden;display:none;" id="types-progress-wrap">
+          <div id="types-progress-bar" style="height:100%;width:0%;background:var(--accent);transition:width 0.3s;"></div>
+        </div>
+        <div id="types-status" style="font-size:0.82rem;color:var(--text-muted);"></div>
+        <button class="btn btn-ghost" id="types-stop-btn" style="display:none;margin-top:8px;width:100%;border-color:var(--danger);color:var(--danger);" onclick="stopBulkTypes()">⏹ Sustabdyti</button>
+      </div>
     </div>
 
   </div><!-- /admin-zone -->
@@ -574,8 +620,25 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     </div>
     <div class="cmd-row">
       <button type="button" class="btn btn-cmd-skip" onclick="skipWord()">⏭ Praleisti</button>
+      <button type="button" class="btn btn-ghost" id="hint-btn" onclick="hintWord()" title="Atskleisti raidę">💡</button>
       <button type="button" class="btn btn-cmd-stop" onclick="endSession()">⏹ Baigti testą</button>
       <button type="button" class="btn btn-ghost" id="game-editor-btn" style="display:inline-block;padding:0 10px;font-size:1rem;" title="Redaguoti žodį" onclick="openGameEditor()">✏️</button>
+    </div>
+    <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <span style="font-size:0.75rem;color:var(--text-dim);">Filtras:</span>
+        <span id="game-filter-count" style="font-size:0.75rem;color:var(--text-muted);"></span>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;" id="game-type-filter-btns">
+        <button class="type-filter-btn selected" data-type="all" onclick="selectTypeFilter('all')">📚 Visi</button>
+        <button class="type-filter-btn" data-type="noun" onclick="selectTypeFilter('noun')">🏷 Daiktavardžiai</button>
+        <button class="type-filter-btn" data-type="verb" onclick="selectTypeFilter('verb')">⚡ Veiksmažodžiai</button>
+        <button class="type-filter-btn" data-type="irregular" onclick="selectTypeFilter('irregular')">🔀 Netaisyklingi</button>
+        <button class="type-filter-btn" data-type="adjective" onclick="selectTypeFilter('adjective')">🎨 Būdvardžiai</button>
+        <button class="type-filter-btn" data-type="adverb" onclick="selectTypeFilter('adverb')">💨 Prieveiksmiai</button>
+        <button class="type-filter-btn" data-type="phrase" onclick="selectTypeFilter('phrase')">💬 Frazės</button>
+        <button class="type-filter-btn" data-type="other" onclick="selectTypeFilter('other')">🔹 Kita</button>
+      </div>
     </div>
   </div>
 
@@ -651,6 +714,8 @@ let currentIdx = 0;
 let sessionStart = null;
 let timerInterval = null;
 let answered = false;
+let hintUsed = false;
+let hintCount = 0;
 let pendingImportRows = null; // rows parsed from file, waiting for user decision
 let scores = {}; // keyed by word nr, value: { nr, score }
 
@@ -916,12 +981,242 @@ function selectMode(m) {
 }
 
 // ═══════════════════════════════════════
+//  WORD TYPE — AUTO-DETECT & FILTER
+// ═══════════════════════════════════════
+let selectedTypeFilter = 'all';
+
+const WORD_TYPES = ['noun','verb','irregular','adjective','adverb','phrase','other'];
+
+function detectWordTypes(w) {
+  const en  = (w.en  || '').trim();
+  const lt  = (w.lt  || '').toLowerCase();
+  const exp = (w.explanation || '').toLowerCase();
+  const types = new Set();
+
+  // Phrase
+  if (en.split(/\s+/).length >= 3) types.add('phrase');
+  if (/\b(phrase|expression|idiom|phrasal verb)\b/.test(exp)) types.add('phrase');
+
+  // Irregular verb (also mark as verb)
+  if (/\birregular verb\b/.test(exp)) { types.add('irregular'); types.add('verb'); }
+
+  // Verb
+  if (/\bverb\b/.test(exp) || /\bto [a-z]/.test(exp)) types.add('verb');
+  // Lithuanian infinitives end in -ti / -dyti / -oti / -inti / -ėti etc.
+  for (const part of lt.split(/[;,]/)) {
+    const t = part.trim();
+    if (t && /[a-ząčęėįšųūž]ti$/.test(t) && t.split(/\s+/).length === 1) types.add('verb');
+  }
+
+  // Adjective
+  if (/\b(adjective|adj\.?)\b/.test(exp)) types.add('adjective');
+  // Lithuanian masc. adjectives: -as, -us, -ias
+  for (const part of lt.split(/[;,]/)) {
+    const t = part.trim();
+    if (t.split(/\s+/).length === 1 && /^[a-ząčęėįšųūž]+(ias|ius|us|as)$/.test(t) && !types.has('verb'))
+      types.add('adjective');
+  }
+
+  // Adverb
+  if (/\b(adverb|adv\.?)\b/.test(exp)) types.add('adverb');
+  if (/ly$/.test(en) && en.split(/\s+/).length === 1) types.add('adverb');
+
+  // Noun
+  if (/\b(noun|a person|a thing|a place|refers to a)\b/.test(exp)) types.add('noun');
+  // Lithuanian nouns: single word ending -as/-is/-us/-a/-ė/-ia (not already verb/adj)
+  for (const part of lt.split(/[;,]/)) {
+    const t = part.trim();
+    if (t.split(/\s+/).length === 1 && t.length > 2 &&
+        /[aėiuė]$/.test(t) && !types.has('verb') && !types.has('adjective'))
+      types.add('noun');
+  }
+
+  return types.size > 0 ? [...types] : ['other'];
+}
+
+// --- wordType stored as comma-separated string, e.g. "noun,verb" ---
+
+function wordTypesToString(arr) { return arr.join(','); }
+function wordTypesFromString(str) {
+  if (!str) return [];
+  return str.split(',').map(s => s.trim()).filter(Boolean);
+}
+
+// Toggle button helpers for both editors
+function toggleWordTypeBtn(prefix, btn) {
+  btn.classList.toggle('active');
+}
+
+function getWordTypeBtns(prefix) {
+  return [...document.querySelectorAll(`#${prefix}-wordType-btns .wtype-btn`)]
+    .filter(b => b.classList.contains('active'))
+    .map(b => b.dataset.type);
+}
+
+function setWordTypeBtns(prefix, typesStr) {
+  const active = new Set(wordTypesFromString(typesStr));
+  document.querySelectorAll(`#${prefix}-wordType-btns .wtype-btn`)
+    .forEach(b => b.classList.toggle('active', active.has(b.dataset.type)));
+}
+
+async function refineWordTypeAI(w) {
+  const apiKey = localStorage.getItem('claudeApiKey') || '';
+  if (!apiKey || !w || !w.en) return;
+  // Skip if already AI-detected (marked with leading dot) or recently tried
+  if (w._aiTyped) return;
+  w._aiTyped = true;
+
+  try {
+    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+      body: JSON.stringify({
+        model: 'meta-llama/llama-3.1-8b-instruct',
+        max_tokens: 20,
+        temperature: 0,
+        messages: [{ role: 'user', content: `Grammatical type(s) of English word "${w.en}". Reply ONLY comma-separated from: noun,verb,irregular,adjective,adverb,phrase,other. "irregular" = irregular verb (also include "verb"). Example: "noun,verb"` }]
+      })
+    });
+    if (!resp.ok) return;
+    const data = await resp.json();
+    const raw = (data.choices?.[0]?.message?.content || '').toLowerCase();
+    const valid = raw.split(',').map(s => s.trim()).filter(s => WORD_TYPES.includes(s));
+    if (!valid.length) return;
+    const newType = valid.join(',');
+    if (newType === w.wordType) return;
+    w.wordType = newType;
+    if (w.dbId) dbSaveWord({ ...w });
+    // Update type buttons in editor if this word is currently open
+    if (_gemWordIdx !== null && words[_gemWordIdx] === w) setWordTypeBtns('gem', newType);
+    if (typeof editorWordIdx !== 'undefined' && editorWordIdx !== null && words[editorWordIdx] === w)
+      setWordTypeBtns('ef', newType);
+  } catch { /* silent — background task */ }
+}
+
+function selectTypeFilter(type) {
+  selectedTypeFilter = type;
+  document.querySelectorAll('.type-filter-btn').forEach(b =>
+    b.classList.toggle('selected', b.dataset.type === type));
+  updateGameFilterCount();
+}
+
+function updateGameFilterCount() {
+  const el = document.getElementById('game-filter-count');
+  if (!el) return;
+  if (selectedTypeFilter === 'all') { el.textContent = `Iš viso: ${words.length}`; return; }
+  const count = words.filter(w => wordMatchesFilter(w)).length;
+  el.textContent = `${count} iš ${words.length} žodžių`;
+}
+
+// ── ADMIN: bulk type operations ────────────────────────────────────
+let _bulkRunning = false;
+
+function openTypesPanel() {
+  const panel = document.getElementById('admin-types-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  if (panel.style.display === 'block') refreshTypesStats();
+}
+
+function refreshTypesStats() {
+  const total = words.length;
+  const withType = words.filter(w => w.wordType).length;
+  const without = total - withType;
+  const byType = {};
+  WORD_TYPES.forEach(t => byType[t] = 0);
+  words.forEach(w => {
+    wordTypesFromString(w.wordType).forEach(t => { if (byType[t] !== undefined) byType[t]++; });
+  });
+  const breakdown = WORD_TYPES.filter(t => byType[t] > 0)
+    .map(t => `${t}: ${byType[t]}`).join(' · ');
+  document.getElementById('types-stats').innerHTML =
+    `Iš viso: <b>${total}</b> · Su tipu: <b>${withType}</b> · Be tipo: <b>${without}</b>` +
+    (breakdown ? `<br><span style="font-size:0.78rem;">${breakdown}</span>` : '');
+}
+
+async function bulkSetTypes() {
+  if (_bulkRunning) return;
+  const targets = words.filter(w => !w.wordType);
+  if (!targets.length) { document.getElementById('types-status').textContent = 'Visi žodžiai jau turi tipą.'; return; }
+
+  const apiKey = localStorage.getItem('claudeApiKey') || '';
+  const useAI = !!apiKey;
+  _bulkRunning = true;
+  document.getElementById('types-stop-btn').style.display = 'block';
+  document.getElementById('types-progress-wrap').style.display = 'block';
+
+  let done = 0;
+  for (const w of targets) {
+    if (!_bulkRunning) break;
+    document.getElementById('types-status').textContent =
+      `${done}/${targets.length} — "${w.en}"…` + (useAI ? ' (AI)' : ' (taisyklės)');
+    document.getElementById('types-progress-bar').style.width =
+      Math.round(done / targets.length * 100) + '%';
+
+    if (useAI) {
+      try {
+        const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+          body: JSON.stringify({
+            model: 'meta-llama/llama-3.1-8b-instruct',
+            max_tokens: 20, temperature: 0,
+            messages: [{ role: 'user', content: `Grammatical type(s) of English word "${w.en}". Reply ONLY comma-separated from: noun,verb,irregular,adjective,adverb,phrase,other. "irregular"=irregular verb (also add "verb"). E.g. "noun,verb"` }]
+          })
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          const raw = (data.choices?.[0]?.message?.content || '').toLowerCase();
+          const valid = raw.split(',').map(s => s.trim()).filter(s => WORD_TYPES.includes(s));
+          if (valid.length) { w.wordType = valid.join(','); w._aiTyped = true; }
+        }
+      } catch {}
+    }
+
+    if (!w.wordType) {
+      w.wordType = wordTypesToString(detectWordTypes(w));
+    }
+    if (w.dbId) dbSaveWord({ ...w });
+    done++;
+  }
+
+  _bulkRunning = false;
+  document.getElementById('types-stop-btn').style.display = 'none';
+  document.getElementById('types-progress-bar').style.width = '100%';
+  document.getElementById('types-status').textContent = `✓ Atlikta: ${done} žodžiai.`;
+  refreshTypesStats();
+}
+
+async function bulkClearTypes() {
+  if (!confirm(`Ištrinti žodžių tipus VISIEMS ${words.length} žodžiams? Veiksmą atšaukti bus neįmanoma.`)) return;
+  for (const w of words) {
+    w.wordType = '';
+    w._aiTyped = false;
+    if (w.dbId) dbSaveWord({ ...w });
+  }
+  document.getElementById('types-status').textContent = `✓ Tipai ištrinti visiems ${words.length} žodžiams.`;
+  document.getElementById('types-progress-bar').style.width = '0%';
+  refreshTypesStats();
+  updateGameFilterCount();
+}
+
+function stopBulkTypes() {
+  _bulkRunning = false;
+  document.getElementById('types-stop-btn').style.display = 'none';
+  document.getElementById('types-status').textContent = 'Sustabdyta.';
+}
+
+function wordMatchesFilter(w) {
+  if (selectedTypeFilter === 'all') return true;
+  const types = wordTypesFromString(w.wordType);
+  return types.includes(selectedTypeFilter);
+}
+
+// ═══════════════════════════════════════
 //  SESSION START
 // ═══════════════════════════════════════
 function startSession() {
   const shuffle  = document.getElementById('opt-shuffle').checked;
   const limitVal = parseInt(document.getElementById('opt-limit').value);
-  const limit    = isNaN(limitVal) ? words.length : Math.min(limitVal, words.length);
   const sr       = document.getElementById('opt-sr') && document.getElementById('opt-sr').checked;
 
   const srAlert = document.getElementById('sr-alert');
@@ -939,6 +1234,7 @@ function startSession() {
   }
 
   if (shuffle) queue.sort(() => Math.random() - 0.5);
+  const limit = isNaN(limitVal) ? queue.length : Math.min(limitVal, queue.length);
   queue = queue.slice(0, limit);
 
   sessionLog = [];
@@ -1028,9 +1324,26 @@ function updateDashboard() {
 //  QUESTION RENDERING
 // ═══════════════════════════════════════
 function renderQuestion() {
+  // Skip words that don't match the filter; use rule-based detection for instant filtering
+  while (currentIdx < queue.length) {
+    const w = words[queue[currentIdx]];
+    if (!w.wordType) {
+      w.wordType = wordTypesToString(detectWordTypes(w));
+      if (w.dbId) dbSaveWord({ ...w });
+    }
+    if (wordMatchesFilter(w)) break;
+    currentIdx++;
+  }
   if (currentIdx >= queue.length) { endSession(); return; }
 
+  // Refine type with AI in the background (non-blocking); updates DB for next time
+  refineWordTypeAI(words[queue[currentIdx]]);
+
   answered = false;
+  hintUsed = false;
+  hintCount = 0;
+  const hintBtn = document.getElementById('hint-btn');
+  if (hintBtn) { hintBtn.disabled = false; hintBtn.style.opacity = '1'; }
   const w = words[queue[currentIdx]];
   const isEnLt = mode === 'en-lt';
 
@@ -1253,9 +1566,10 @@ function submitAnswer() {
   const expectedField = mode === 'en-lt'
     ? [w.lt, w.ltOld].filter(Boolean).join('; ')
     : w.en;
-  const { correct, typo } = checkAnswer(raw, expectedField);
+  let { correct, typo } = checkAnswer(raw, expectedField);
+  if (hintUsed) { correct = false; typo = false; }
 
-  const resultType = correct ? (typo ? 'typo' : 'correct') : 'wrong';
+  const resultType = correct ? (typo ? 'typo' : 'correct') : (hintUsed ? 'hint' : 'wrong');
   sessionLog.push({ wordIdx: queue[currentIdx], correct, skipped: false, typo, given: raw });
   updateScore(queue[currentIdx], correct);
   answered = true;
@@ -1266,6 +1580,23 @@ function submitAnswer() {
 
   showFeedback(w, resultType);
   updateDashboard();
+}
+
+function hintWord() {
+  if (answered) return;
+  const w = words[queue[currentIdx]];
+  const target = mode === 'en-lt'
+    ? (w.lt || w.ltOld || '').split(/[;,]/)[0].trim()
+    : (w.en || '');
+  if (!target) return;
+  hintCount = Math.min(hintCount + 1, target.length);
+  hintUsed = true;
+  const inp = document.getElementById('answer-input');
+  inp.value = target.slice(0, hintCount);
+  inp.focus();
+  inp.setSelectionRange(hintCount, hintCount);
+  const btn = document.getElementById('hint-btn');
+  if (hintCount >= target.length) { btn.disabled = true; btn.style.opacity = '0.4'; }
 }
 
 function skipWord() {
@@ -1302,10 +1633,10 @@ function showFeedback(w, type) {
     correct: '✓ Teisingai!',
     typo:    '〜 Beveik teisingai! (viena raidė)',
     wrong:   '✗ Neteisingai',
-    skipped: '⏭ Praleista'
+    skipped: '⏭ Praleista',
+    hint:    '💡 Su pagalba (neatspėta)'
   };
-  // Map 'typo' to 'correct' class for green styling, but with distinct label
-  const cssType = type === 'typo' ? 'typo' : type;
+  const cssType = type === 'typo' ? 'typo' : type === 'hint' ? 'wrong' : type;
   header.className = `feedback-header ${cssType}`;
   header.textContent = labels[type];
 
@@ -1546,7 +1877,8 @@ async function claudeAutofill(prefix) {
   btn.disabled = true;
   btn.textContent = '⏳ Kraunama…';
 
-  const prompt = `Fill in the following fields for the English word "${enWord}". Reply ONLY with a JSON object with these exact keys: transcription, lt, ltOld, example, exampleTrans, explanation.
+  const prompt = `Fill in the following fields for the English word "${enWord}". Reply ONLY with a JSON object with these exact keys: wordType, transcription, lt, ltOld, example, exampleTrans, explanation.
+- wordType: comma-separated list of applicable types from: noun, verb, irregular, adjective, adverb, phrase, other — a word can have multiple (e.g. "noun,verb"); "irregular" means irregular verb (also include "verb")
 - transcription: IPA pronunciation (e.g. /wɜːrd/)
 - lt: Lithuanian translation(s), semicolon-separated if multiple meanings
 - ltOld: alternative/archaic Lithuanian translation (if none, empty string)
@@ -1586,6 +1918,7 @@ Reply with only the JSON, no markdown fences.`;
     try { parsed = JSON.parse(text); }
     catch { throw new Error('Nepavyko išanalizuoti JSON: ' + text.substring(0, 120)); }
 
+    if (parsed.wordType) setWordTypeBtns(prefix, parsed.wordType);
     const fields = ['transcription', 'lt', 'ltOld', 'example', 'exampleTrans', 'explanation'];
     fields.forEach(f => {
       const el = document.getElementById(prefix + '-' + f);
@@ -1615,6 +1948,7 @@ function _showGameEditorWithCurrent() {
   const w = words[idx];
   document.getElementById('gem-title').textContent = `✏️ Redaguoti: ${w.en}`;
   document.getElementById('gem-nr').value = w.nr || '';
+  setWordTypeBtns('gem', w.wordType || '');
   document.getElementById('gem-en').value = w.en || '';
   document.getElementById('gem-transcription').value = w.transcription || '';
   document.getElementById('gem-lt').value = w.lt || '';
@@ -1637,6 +1971,7 @@ function gemNewWord() {
   document.getElementById('gem-title').textContent = '＋ Naujas žodis';
   ['nr','en','transcription','lt','ltOld','example','exampleTrans','explanation']
     .forEach(f => document.getElementById('gem-' + f).value = '');
+  setWordTypeBtns('gem', '');
   document.getElementById('gem-nr').value = nextNr();
   document.getElementById('gem-delete-btn').style.display = 'none';
   document.getElementById('gem-msg').style.display = 'none';
@@ -1646,6 +1981,7 @@ function gemNewWord() {
 async function gemSave() {
   const record = {
     nr:            document.getElementById('gem-nr').value.trim(),
+    wordType:      wordTypesToString(getWordTypeBtns('gem')),
     en:            document.getElementById('gem-en').value.trim(),
     transcription: document.getElementById('gem-transcription').value.trim(),
     lt:            document.getElementById('gem-lt').value.trim(),
@@ -1730,6 +2066,7 @@ function editorLoad(idx) {
   document.getElementById('editor-search').value = w.en;
   document.getElementById('editor-form-title').textContent = `Redaguoti: ${w.en} (DB #${w.nr})`;
   document.getElementById('ef-nr').value = w.nr || '';
+  setWordTypeBtns('ef', w.wordType || '');
   document.getElementById('ef-en').value = w.en || '';
   document.getElementById('ef-transcription').value = w.transcription || '';
   document.getElementById('ef-lt').value = w.lt || '';
@@ -1749,6 +2086,7 @@ function editorNewWord() {
   document.getElementById('editor-form-title').textContent = 'Naujas žodis';
   ['nr','en','transcription','lt','ltOld','example','exampleTrans','explanation']
     .forEach(f => document.getElementById('ef-' + f).value = '');
+  setWordTypeBtns('ef', '');
   document.getElementById('ef-nr').value = nextNr();
   document.getElementById('editor-delete-btn').style.display = 'none';
   document.getElementById('editor-form').style.display = 'block';
@@ -1765,6 +2103,7 @@ function editorCancel() {
 async function editorSave() {
   const record = {
     nr:           document.getElementById('ef-nr').value.trim(),
+    wordType:     wordTypesToString(getWordTypeBtns('ef')),
     en:           document.getElementById('ef-en').value.trim(),
     transcription:document.getElementById('ef-transcription').value.trim(),
     lt:           document.getElementById('ef-lt').value.trim(),
