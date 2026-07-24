@@ -355,11 +355,11 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
           <button type="button" class="wtype-btn" data-type="verb" onclick="toggleWordTypeBtn('gem',this)">⚡ Veiksmažodis</button>
           <button type="button" class="wtype-btn" data-type="irregular" onclick="toggleWordTypeBtn('gem',this)">🔀 Netaisyklingas</button>
           <button type="button" class="wtype-btn" data-type="adjective" onclick="toggleWordTypeBtn('gem',this)">🎨 Būdvardis</button>
-          <button type="button" class="wtype-btn" data-type="adverb" onclick="toggleWordTypeBtn('gem',this)">💨 Prieveiksmis</button>
           <button type="button" class="wtype-btn" data-type="phrase" onclick="toggleWordTypeBtn('gem',this)">💬 Frazė</button>
           <button type="button" class="wtype-btn" data-type="other" onclick="toggleWordTypeBtn('gem',this)">🔹 Kita</button>
         </div>
       </div>
+      <div id="gem-verbForms-row" style="display:none;"><label style="font-size:0.78rem;color:var(--text-muted);">Trys formos (pvz. go / went / gone)</label><input id="gem-verbForms" class="answer-input" style="width:100%;margin-top:3px;" placeholder="base / past / past participle"></div>
       <div><label style="font-size:0.78rem;color:var(--text-muted);">Angliškas žodis</label><input id="gem-en" class="answer-input" style="width:100%;margin-top:3px;"></div>
       <div><label style="font-size:0.78rem;color:var(--text-muted);">Transkripcija</label><input id="gem-transcription" class="answer-input" style="width:100%;margin-top:3px;"></div>
       <div><label style="font-size:0.78rem;color:var(--text-muted);">Lietuviškas vertimas</label><textarea id="gem-lt" class="answer-input" style="width:100%;margin-top:3px;height:64px;resize:vertical;"></textarea></div>
@@ -516,7 +516,6 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
           <button class="type-filter-btn" data-type="verb" onclick="editorNavSetFilter('verb')">⚡ Veiksmažodžiai</button>
           <button class="type-filter-btn" data-type="irregular" onclick="editorNavSetFilter('irregular')">🔀 Netaisyklingi</button>
           <button class="type-filter-btn" data-type="adjective" onclick="editorNavSetFilter('adjective')">🎨 Būdvardžiai</button>
-          <button class="type-filter-btn" data-type="adverb" onclick="editorNavSetFilter('adverb')">💨 Prieveiksmiai</button>
           <button class="type-filter-btn" data-type="phrase" onclick="editorNavSetFilter('phrase')">💬 Frazės</button>
           <button class="type-filter-btn" data-type="other" onclick="editorNavSetFilter('other')">🔹 Kita</button>
           <button class="type-filter-btn" data-type="none" onclick="editorNavSetFilter('none')">❓ Be tipo</button>
@@ -548,11 +547,11 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
               <button type="button" class="wtype-btn" data-type="verb" onclick="toggleWordTypeBtn('ef',this)">⚡ Veiksmažodis</button>
               <button type="button" class="wtype-btn" data-type="irregular" onclick="toggleWordTypeBtn('ef',this)">🔀 Netaisyklingas</button>
               <button type="button" class="wtype-btn" data-type="adjective" onclick="toggleWordTypeBtn('ef',this)">🎨 Būdvardis</button>
-              <button type="button" class="wtype-btn" data-type="adverb" onclick="toggleWordTypeBtn('ef',this)">💨 Prieveiksmis</button>
               <button type="button" class="wtype-btn" data-type="phrase" onclick="toggleWordTypeBtn('ef',this)">💬 Frazė</button>
               <button type="button" class="wtype-btn" data-type="other" onclick="toggleWordTypeBtn('ef',this)">🔹 Kita</button>
             </div>
           </div>
+          <div id="ef-verbForms-row" style="display:none;"><label style="font-size:0.78rem;color:var(--text-muted);">Trys formos (pvz. go / went / gone)</label><input id="ef-verbForms" class="answer-input" style="width:100%;margin-top:3px;" placeholder="base / past / past participle"></div>
           <div><label style="font-size:0.78rem;color:var(--text-muted);">Angliškas žodis</label><input id="ef-en" class="answer-input" style="width:100%;margin-top:3px;" placeholder="English word"></div>
           <div><label style="font-size:0.78rem;color:var(--text-muted);">Transkripcija</label><input id="ef-transcription" class="answer-input" style="width:100%;margin-top:3px;" placeholder="/trænˈskrɪpʃən/"></div>
           <div><label style="font-size:0.78rem;color:var(--text-muted);">Lietuviškas vertimas</label><textarea id="ef-lt" class="answer-input" style="width:100%;margin-top:3px;height:64px;resize:vertical;" placeholder="vertimas; reikšmė"></textarea></div>
@@ -656,7 +655,6 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         <button class="type-filter-btn" data-type="verb" onclick="selectTypeFilter('verb')">⚡ Veiksmažodžiai</button>
         <button class="type-filter-btn" data-type="irregular" onclick="selectTypeFilter('irregular')">🔀 Netaisyklingi</button>
         <button class="type-filter-btn" data-type="adjective" onclick="selectTypeFilter('adjective')">🎨 Būdvardžiai</button>
-        <button class="type-filter-btn" data-type="adverb" onclick="selectTypeFilter('adverb')">💨 Prieveiksmiai</button>
         <button class="type-filter-btn" data-type="phrase" onclick="selectTypeFilter('phrase')">💬 Frazės</button>
         <button class="type-filter-btn" data-type="other" onclick="selectTypeFilter('other')">🔹 Kita</button>
       </div>
@@ -1006,13 +1004,16 @@ function selectMode(m) {
 // ═══════════════════════════════════════
 let selectedTypeFilter = 'all';
 
-const WORD_TYPES = ['noun','verb','irregular','adjective','adverb','phrase','other'];
+const WORD_TYPES = ['noun','verb','irregular','adjective','phrase','other'];
 
 function detectWordTypes(w) {
   const en  = (w.en  || '').trim();
   const lt  = (w.lt  || '').toLowerCase();
   const exp = (w.explanation || '').toLowerCase();
   const types = new Set();
+
+  // Prefix (co-, counter-, un-…) or suffix/ending (-ment, -tion…)
+  if (/^-|-$/.test(en)) return ['other'];
 
   // Phrase
   if (en.split(/\s+/).length >= 3) types.add('phrase');
@@ -1038,9 +1039,6 @@ function detectWordTypes(w) {
       types.add('adjective');
   }
 
-  // Adverb
-  if (/\b(adverb|adv\.?)\b/.test(exp)) types.add('adverb');
-  if (/ly$/.test(en) && en.split(/\s+/).length === 1) types.add('adverb');
 
   // Noun
   if (/\b(noun|a person|a thing|a place|refers to a)\b/.test(exp)) types.add('noun');
@@ -1075,14 +1073,80 @@ function mergeWordTypes() {
   const store = wtsGet();
   words.forEach(w => {
     const key = String(w.nr);
-    if (w.wordType && !store[key]) wtsSet(w.nr, w.wordType); // sync to store
-    else if (!w.wordType && store[key]) w.wordType = store[key]; // restore from store
+    if (store[key]) w.wordType = store[key]; // store is always more up-to-date
+    else if (w.wordType) wtsSet(w.nr, w.wordType); // sync JSON value to store
   });
 }
 
 function saveWordType(w) {
   wtsSet(w.nr, w.wordType);
+  vfsSet(w.nr, w.verbForms || '');
   if (w.dbId) dbSaveWord({ ...w });
+}
+
+const VFS_KEY = 'verbFormsStore';
+function vfsGet() {
+  try { return JSON.parse(localStorage.getItem(VFS_KEY) || '{}'); } catch { return {}; }
+}
+function vfsSet(nr, forms) {
+  if (!nr && nr !== 0) return;
+  const store = vfsGet();
+  if (forms) store[String(nr)] = forms; else delete store[String(nr)];
+  localStorage.setItem(VFS_KEY, JSON.stringify(store));
+}
+function vfsClearAll() { localStorage.removeItem(VFS_KEY); }
+function mergeVerbForms() {
+  const store = vfsGet();
+  words.forEach(w => {
+    const key = String(w.nr);
+    if (store[key]) w.verbForms = store[key];
+    else if (w.verbForms) vfsSet(w.nr, w.verbForms);
+  });
+}
+
+// Synchronous cleanup of bad word types already in localStorage (no API calls)
+function cleanupStoredTypes() {
+  let changed = false;
+  words.forEach(w => {
+    const en = (w.en || '').trim();
+    // Prefix/suffix (co-, -ment) → force 'other'
+    if (/^-|-$/.test(en)) {
+      if ((w.wordType || '') !== 'other') {
+        w.wordType = 'other'; w.verbForms = '';
+        wtsSet(w.nr, 'other'); vfsSet(w.nr, '');
+        changed = true;
+      }
+      return;
+    }
+    const types = wordTypesFromString(w.wordType || '');
+    // Remove deprecated 'adverb' type
+    if (types.includes('adverb')) {
+      const cleaned = types.filter(t => t !== 'adverb');
+      w.wordType = (cleaned.length ? cleaned : ['other']).join(',');
+      wtsSet(w.nr, w.wordType);
+      changed = true;
+    }
+    if (!types.includes('irregular')) return;
+    // Remove 'irregular' if word not in known list
+    if (!couldBeIrregularVerb(w)) {
+      w.wordType = types.filter(t => t !== 'irregular').join(',');
+      w.verbForms = '';
+      wtsSet(w.nr, w.wordType); vfsSet(w.nr, '');
+      changed = true;
+      return;
+    }
+    // Remove 'irregular' if existing verbForms fail validation
+    if (w.verbForms) {
+      const parts = w.verbForms.split('/').map(s => s.trim());
+      if (!verbFormsAreValid(w, parts)) {
+        w.wordType = types.filter(t => t !== 'irregular').join(',');
+        w.verbForms = '';
+        wtsSet(w.nr, w.wordType); vfsSet(w.nr, '');
+        changed = true;
+      }
+    }
+  });
+  return changed;
 }
 
 // --- wordType stored as comma-separated string, e.g. "noun,verb" ---
@@ -1096,6 +1160,10 @@ function wordTypesFromString(str) {
 // Toggle button helpers for both editors
 function toggleWordTypeBtn(prefix, btn) {
   btn.classList.toggle('active');
+  if (btn.dataset.type === 'irregular') {
+    const row = document.getElementById(prefix + '-verbForms-row');
+    if (row) row.style.display = btn.classList.contains('active') ? 'block' : 'none';
+  }
 }
 
 function getWordTypeBtns(prefix) {
@@ -1108,6 +1176,8 @@ function setWordTypeBtns(prefix, typesStr) {
   const active = new Set(wordTypesFromString(typesStr));
   document.querySelectorAll(`#${prefix}-wordType-btns .wtype-btn`)
     .forEach(b => b.classList.toggle('active', active.has(b.dataset.type)));
+  const row = document.getElementById(prefix + '-verbForms-row');
+  if (row) row.style.display = active.has('irregular') ? 'block' : 'none';
 }
 
 async function refineWordTypeAI(w) {
@@ -1125,7 +1195,7 @@ async function refineWordTypeAI(w) {
         model: 'meta-llama/llama-3.1-8b-instruct',
         max_tokens: 20,
         temperature: 0,
-        messages: [{ role: 'user', content: `Grammatical type(s) of English word "${w.en}". Reply ONLY comma-separated from: noun,verb,irregular,adjective,adverb,phrase,other. "irregular" = irregular verb (also include "verb"). Example: "noun,verb"` }]
+        messages: [{ role: 'user', content: `Grammatical type(s) of English word "${w.en}". Reply ONLY comma-separated from: noun,verb,irregular,adjective,phrase,other. Use "irregular" ONLY if the verb past tense is NOT formed by adding -ed (e.g. go→went, take→took). Regular verbs like investigate→investigated must NOT get "irregular". If irregular, also include "verb". Prefixes (co-, counter-, un-…) and suffixes/endings (-ment, -tion, -ly…) must get "other". Example: "verb,irregular"` }]
       })
     });
     if (!resp.ok) return;
@@ -1134,14 +1204,153 @@ async function refineWordTypeAI(w) {
     const valid = raw.split(',').map(s => s.trim()).filter(s => WORD_TYPES.includes(s));
     if (!valid.length) return;
     const newType = valid.join(',');
-    if (newType === w.wordType) return;
-    w.wordType = newType;
-    saveWordType(w);
-    // Update type buttons in editor if this word is currently open
-    if (_gemWordIdx !== null && words[_gemWordIdx] === w) setWordTypeBtns('gem', newType);
-    if (typeof editorWordIdx !== 'undefined' && editorWordIdx !== null && words[editorWordIdx] === w)
-      setWordTypeBtns('ef', newType);
+    const wasIrregular = wordTypesFromString(w.wordType || '').includes('irregular');
+    const isNowIrregular = valid.includes('irregular');
+    if (newType !== w.wordType) {
+      // If was irregular but AI says it's not — remove irregular type
+      if (wasIrregular && !isNowIrregular) {
+        const filtered = wordTypesFromString(w.wordType || '').filter(t => t !== 'irregular');
+        w.wordType = filtered.join(',') || newType;
+      } else {
+        w.wordType = newType;
+      }
+      saveWordType(w);
+      if (_gemWordIdx !== null && words[_gemWordIdx] === w) setWordTypeBtns('gem', w.wordType);
+      if (typeof editorWordIdx !== 'undefined' && editorWordIdx !== null && words[editorWordIdx] === w)
+        setWordTypeBtns('ef', w.wordType);
+    }
+    // Fetch three forms if irregular and not yet known
+    if (isNowIrregular) validateAndFixIrregular(w);
   } catch { /* silent — background task */ }
+}
+
+function isRegularPast(base, past) {
+  const b = base.toLowerCase().trim();
+  const p = past.toLowerCase().trim();
+  if (p === b + 'ed') return true;
+  if (p === b + 'd') return true;
+  if (b.endsWith('y') && p === b.slice(0, -1) + 'ied') return true;
+  // doubled consonant: stop→stopped, drop→dropped
+  if (b.length >= 2 && p === b + b[b.length - 1] + 'ed') return true;
+  return false;
+}
+
+function removeIrregularType(w) {
+  const types = wordTypesFromString(w.wordType || '').filter(t => t !== 'irregular');
+  w.wordType = types.join(',');
+  w.verbForms = '';
+  saveWordType(w);
+  if (_gemWordIdx !== null && words[_gemWordIdx] === w) {
+    setWordTypeBtns('gem', w.wordType);
+    document.getElementById('gem-verbForms').value = '';
+  }
+  if (typeof editorWordIdx !== 'undefined' && editorWordIdx !== null && words[editorWordIdx] === w) {
+    setWordTypeBtns('ef', w.wordType);
+    document.getElementById('ef-verbForms').value = '';
+  }
+}
+
+const AUXILIARIES = new Set(['was','were','had','have','has','is','are','am','be','been','get','got','become','became']);
+
+// Authoritative list of common English irregular verbs
+const IRREGULAR_VERBS = new Set([
+  'arise','awake','be','bear','beat','become','begin','bend','bet','bid','bind','bite',
+  'blow','break','bring','broadcast','build','burn','burst','buy','cast','catch','choose',
+  'cling','come','cost','creep','cut','deal','dig','dive','do','draw','dream','drink',
+  'drive','dwell','eat','fall','feed','feel','fight','find','flee','fly','forbid',
+  'forget','freeze','get','give','go','grind','grow','hang','have','hear','hide',
+  'hit','hold','hurt','keep','kneel','knit','know','lay','lead','lean','leap','learn',
+  'leave','lend','let','lie','light','lose','make','mean','meet','mow','pay','prove',
+  'put','quit','read','rid','ride','ring','rise','run','say','see','seek','sell',
+  'send','set','shake','shed','shine','shoot','show','shrink','shut','sing','sink',
+  'sit','sleep','slide','smell','sow','speak','speed','spend','spill','spin','spit',
+  'split','spread','spring','stand','steal','stick','sting','stink','stride','strike',
+  'strive','swear','sweep','swim','swing','take','teach','tear','tell','think','throw',
+  'understand','wake','wear','weave','weep','win','wind','write','undergo','undertake',
+  'overcome','withstand','withdraw','upset','undo','outdo','forbid','forsake','mistake',
+  'overtake','overrun','rewind','rebuild','retell','rewrite','misunderstand','misled',
+  'mislead','spill','spoil','kneel','leap','dream','smell','spell','learn','burn'
+]);
+
+// A word can only be an irregular verb if it's in the known list
+function couldBeIrregularVerb(w) {
+  const en = (w.en || '').trim();
+  if (/['''ʼ]/.test(en)) return false;
+  const words = en.split(/\s+/);
+  // For "to fly", "to go" — check the verb after "to"
+  const mainVerb = words[0].toLowerCase() === 'to' && words[1] ? words[1] : words[0];
+  return IRREGULAR_VERBS.has(mainVerb.toLowerCase());
+}
+
+function verbFormsAreValid(w, parts) {
+  if (parts.length < 3) return false;
+  const [base, past, pp] = parts.map(s => s.toLowerCase().trim());
+  // Base form must match the word (first word for multi-word entries)
+  const wordBase = (w.en || '').split(/\s+/)[0].toLowerCase().replace(/^to$/, '').trim() ||
+    (w.en || '').split(/\s+/)[0].toLowerCase();
+  const enBase = (w.en || '').replace(/^to\s+/i, '').split(/\s+/)[0].toLowerCase();
+  if (base !== enBase) return false;
+  // All three identical → not a verb / hallucination
+  if (base === past && past === pp) return false;
+  // Past or PP must be a single word (no spaces) — "stood still", "was ashamed" are not verb forms
+  if (past.includes(' ') || pp.includes(' ')) return false;
+  // Past or PP starts with an auxiliary → not real verb forms
+  const pastFirst = past.split(/\s+/)[0];
+  const ppFirst   = pp.split(/\s+/)[0];
+  if (AUXILIARIES.has(pastFirst) || AUXILIARIES.has(ppFirst)) return false;
+  // Past ends with 's' → third-person singular, not past tense (dice/dices/diced)
+  if (past.endsWith('s') && !past.endsWith('ss')) return false;
+  // Past ends with 'ed' → regular verb
+  if (past.endsWith('ed')) return false;
+  // Past same as base+ed/d → regular
+  if (isRegularPast(base, past)) return false;
+  return true;
+}
+
+
+// Checks existing verbForms string or calls AI; removes 'irregular' if actually regular
+function validateAndFixIrregular(w) {
+  if (!couldBeIrregularVerb(w)) { removeIrregularType(w); return; }
+  if (w.verbForms) {
+    const parts = w.verbForms.split('/').map(s => s.trim());
+    if (!verbFormsAreValid(w, parts)) removeIrregularType(w);
+  } else {
+    fetchVerbForms(w);
+  }
+}
+
+async function fetchVerbForms(w) {
+  const apiKey = localStorage.getItem('claudeApiKey') || '';
+  if (!apiKey || !w || !w.en) return;
+  // Only use the base (first) word if multi-word
+  const baseVerb = w.en.split(/\s+/)[0];
+  try {
+    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+      body: JSON.stringify({
+        model: 'meta-llama/llama-3.1-8b-instruct',
+        max_tokens: 20,
+        temperature: 0,
+        messages: [{ role: 'user', content: `Give three forms of English verb "${baseVerb}": base / past-simple / past-participle. Reply ONLY those three words separated by " / ". Examples: "go / went / gone", "take / took / taken". If regular (e.g. investigate / investigated / investigated), still reply the same format.` }]
+      })
+    });
+    if (!resp.ok) return;
+    const data = await resp.json();
+    const raw = (data.choices?.[0]?.message?.content || '').trim();
+    if (!raw || !raw.includes('/')) return;
+    const parts = raw.split('/').map(s => s.trim());
+    if (!verbFormsAreValid(w, parts)) {
+      removeIrregularType(w);
+      return;
+    }
+    w.verbForms = raw;
+    saveWordType(w);
+    if (_gemWordIdx !== null && words[_gemWordIdx] === w)
+      document.getElementById('gem-verbForms').value = raw;
+    if (typeof editorWordIdx !== 'undefined' && editorWordIdx !== null && words[editorWordIdx] === w)
+      document.getElementById('ef-verbForms').value = raw;
+  } catch { /* silent */ }
 }
 
 function selectTypeFilter(type) {
@@ -1211,7 +1420,7 @@ async function bulkSetTypes() {
           body: JSON.stringify({
             model: 'meta-llama/llama-3.1-8b-instruct',
             max_tokens: 20, temperature: 0,
-            messages: [{ role: 'user', content: `Grammatical type(s) of English word "${w.en}". Reply ONLY comma-separated from: noun,verb,irregular,adjective,adverb,phrase,other. "irregular"=irregular verb (also add "verb"). E.g. "noun,verb"` }]
+            messages: [{ role: 'user', content: `Grammatical type(s) of English word "${w.en}". Reply ONLY comma-separated from: noun,verb,irregular,adjective,phrase,other. Use "irregular" ONLY if the verb past tense is NOT formed by adding -ed (e.g. go→went, take→took). Regular verbs like investigate→investigated must NOT get "irregular". If irregular, also include "verb". E.g. "verb,irregular"` }]
           })
         });
         if (resp.ok) {
@@ -1227,6 +1436,7 @@ async function bulkSetTypes() {
       w.wordType = wordTypesToString(detectWordTypes(w));
     }
     saveWordType(w);
+    if (wordTypesFromString(w.wordType).includes('irregular')) validateAndFixIrregular(w);
     done++;
   }
 
@@ -1693,11 +1903,14 @@ function showFeedback(w, type) {
   header.textContent = labels[type];
 
   const answer = mode === 'en-lt' ? w.lt : w.en;
+  const isIrregularWord = wordTypesFromString(w.wordType || '').includes('irregular');
+  const formsNote = isIrregularWord && w.verbForms ? `  (${w.verbForms})` : '';
   if (type !== 'correct') {
     correctLine.style.display = 'block';
-    correctLine.textContent = `Teisingas atsakymas: ${answer}`;
+    correctLine.textContent = `Teisingas atsakymas: ${answer}${formsNote}`;
   } else {
-    correctLine.style.display = 'none';
+    correctLine.style.display = isIrregularWord && w.verbForms ? 'block' : 'none';
+    if (isIrregularWord && w.verbForms) correctLine.textContent = `🔀 ${w.verbForms}`;
   }
 
   const speakRow = document.getElementById('answer-speak-row');
@@ -1716,6 +1929,8 @@ function showFeedback(w, type) {
     rows.push({ label: 'Lietuviškas žodis', value: w.lt });
     rows.push({ label: 'Angliškas žodis', value: w.en + (w.transcription ? ` [${w.transcription}]` : '') });
   }
+  const isIrregular = wordTypesFromString(w.wordType || '').includes('irregular');
+  if (isIrregular && w.verbForms) rows.push({ label: '🔀 Trys formos', value: w.verbForms });
   if (w.example)      rows.push({ label: 'Pavyzdys', value: w.example });
   if (w.exampleTrans) rows.push({ label: 'Pavyzdžio vertimas', value: w.exampleTrans });
   if (w.ltOld)        rows.push({ label: 'Senas vertimas', value: w.ltOld });
@@ -1857,8 +2072,8 @@ function exportWithPassword() {
 }
 
 function exportWordsJson() {
-  const data = words.map(({ nr, en, transcription, lt, example, exampleTrans, ltOld, explanation }) =>
-    ({ nr, en, transcription, lt, example, exampleTrans, ltOld, explanation })
+  const data = words.map(({ nr, en, transcription, lt, example, exampleTrans, ltOld, explanation, wordType, verbForms }) =>
+    ({ nr, en, transcription, lt, example, exampleTrans, ltOld, explanation, wordType: wordType || '', verbForms: verbForms || '' })
   );
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
@@ -1887,6 +2102,8 @@ async function init() {
       if (Array.isArray(json) && json.length) {
         words = json;
         mergeWordTypes();
+        mergeVerbForms();
+        cleanupStoredTypes();
         setStatus(`✓ Žodynas užkrautas iš words.json — ${words.length} žodžiai`, 'ok');
         document.getElementById('start-btn').disabled = false;
         document.getElementById('weak-btn').disabled = false;
@@ -1899,6 +2116,8 @@ async function init() {
   // 2. Jei words.json nepasiekiamas — IndexedDB (lokalus naudojimas)
   await loadWordsFromDB();
   mergeWordTypes();
+  mergeVerbForms();
+  cleanupStoredTypes();
   await loadScores();
 }
 
@@ -1931,8 +2150,9 @@ async function claudeAutofill(prefix) {
   btn.disabled = true;
   btn.textContent = '⏳ Kraunama…';
 
-  const prompt = `Fill in the following fields for the English word "${enWord}". Reply ONLY with a JSON object with these exact keys: wordType, transcription, lt, ltOld, example, exampleTrans, explanation.
-- wordType: comma-separated list of applicable types from: noun, verb, irregular, adjective, adverb, phrase, other — a word can have multiple (e.g. "noun,verb"); "irregular" means irregular verb (also include "verb")
+  const prompt = `Fill in the following fields for the English word "${enWord}". Reply ONLY with a JSON object with these exact keys: wordType, verbForms, transcription, lt, ltOld, example, exampleTrans, explanation.
+- wordType: comma-separated list of applicable types from: noun, verb, irregular, adjective, phrase, other — a word can have multiple (e.g. "noun,verb"); "irregular" means irregular verb (also include "verb")
+- verbForms: if irregular verb, three forms as "base / past / past-participle" (e.g. "go / went / gone"); otherwise empty string
 - transcription: IPA pronunciation (e.g. /wɜːrd/)
 - lt: Lithuanian translation(s), semicolon-separated if multiple meanings
 - ltOld: alternative/archaic Lithuanian translation (if none, empty string)
@@ -1973,7 +2193,7 @@ Reply with only the JSON, no markdown fences.`;
     catch { throw new Error('Nepavyko išanalizuoti JSON: ' + text.substring(0, 120)); }
 
     if (parsed.wordType) setWordTypeBtns(prefix, parsed.wordType);
-    const fields = ['transcription', 'lt', 'ltOld', 'example', 'exampleTrans', 'explanation'];
+    const fields = ['verbForms', 'transcription', 'lt', 'ltOld', 'example', 'exampleTrans', 'explanation'];
     fields.forEach(f => {
       const el = document.getElementById(prefix + '-' + f);
       if (el && parsed[f] !== undefined) el.value = parsed[f];
@@ -2010,6 +2230,7 @@ function _showGameEditorWithCurrent() {
   document.getElementById('gem-example').value = w.example || '';
   document.getElementById('gem-exampleTrans').value = w.exampleTrans || '';
   document.getElementById('gem-explanation').value = w.explanation || '';
+  document.getElementById('gem-verbForms').value = w.verbForms || '';
   document.getElementById('gem-delete-btn').style.display = 'inline-block';
   document.getElementById('gem-msg').style.display = 'none';
   document.getElementById('game-editor-modal').style.display = 'flex';
@@ -2023,7 +2244,7 @@ function nextNr() {
 function gemNewWord() {
   _gemWordIdx = null;
   document.getElementById('gem-title').textContent = '＋ Naujas žodis';
-  ['nr','en','transcription','lt','ltOld','example','exampleTrans','explanation']
+  ['nr','en','transcription','lt','ltOld','example','exampleTrans','explanation','verbForms']
     .forEach(f => document.getElementById('gem-' + f).value = '');
   setWordTypeBtns('gem', '');
   document.getElementById('gem-nr').value = nextNr();
@@ -2043,12 +2264,15 @@ async function gemSave() {
     example:       document.getElementById('gem-example').value.trim(),
     exampleTrans:  document.getElementById('gem-exampleTrans').value.trim(),
     explanation:   document.getElementById('gem-explanation').value.trim(),
+    verbForms:     document.getElementById('gem-verbForms').value.trim(),
   };
   if (!record.en) { gemMsg('Angliškas žodis privalomas.', 'danger'); return; }
 
   if (_gemWordIdx !== null) {
     const w = words[_gemWordIdx];
     Object.assign(w, record);
+    wtsSet(w.nr, record.wordType);
+    vfsSet(w.nr, record.verbForms);
     await dbSaveWord({ ...record, dbId: w.dbId });
     renderQuestion();
     gemMsg('✓ Išsaugota.', 'success');
@@ -2203,6 +2427,7 @@ function editorLoad(idx) {
   document.getElementById('ef-example').value = w.example || '';
   document.getElementById('ef-exampleTrans').value = w.exampleTrans || '';
   document.getElementById('ef-explanation').value = w.explanation || '';
+  document.getElementById('ef-verbForms').value = w.verbForms || '';
   document.getElementById('editor-delete-btn').style.display = 'inline-block';
   document.getElementById('editor-form').style.display = 'block';
   editorMsg('');
@@ -2213,7 +2438,7 @@ function editorNewWord() {
   document.getElementById('editor-search').value = '';
   document.getElementById('editor-search-results').style.display = 'none';
   document.getElementById('editor-form-title').textContent = 'Naujas žodis';
-  ['nr','en','transcription','lt','ltOld','example','exampleTrans','explanation']
+  ['nr','en','transcription','lt','ltOld','example','exampleTrans','explanation','verbForms']
     .forEach(f => document.getElementById('ef-' + f).value = '');
   setWordTypeBtns('ef', '');
   document.getElementById('ef-nr').value = nextNr();
@@ -2240,6 +2465,7 @@ async function editorSave() {
     example:      document.getElementById('ef-example').value.trim(),
     exampleTrans: document.getElementById('ef-exampleTrans').value.trim(),
     explanation:  document.getElementById('ef-explanation').value.trim(),
+    verbForms:    document.getElementById('ef-verbForms').value.trim(),
   };
   if (!record.en) { editorMsg('Angliškas žodis privalomas.', 'danger'); return; }
 
@@ -2247,6 +2473,8 @@ async function editorSave() {
     // Update existing
     const w = words[editorWordIdx];
     Object.assign(w, record);
+    wtsSet(w.nr, record.wordType);
+    vfsSet(w.nr, record.verbForms);
     await dbSaveWord({ ...record, dbId: w.dbId });
     editorMsg('✓ Išsaugota.', 'success');
   } else {
