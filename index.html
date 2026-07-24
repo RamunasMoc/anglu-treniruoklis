@@ -529,7 +529,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 
       <!-- Search -->
       <div style="display:flex;gap:8px;margin-bottom:14px;">
-        <input id="editor-search" type="text" class="answer-input" placeholder="Ieškoti žodžio (EN arba LT)…" style="flex:1;" oninput="editorSearch()">
+        <input id="editor-search" type="text" class="answer-input" placeholder="Ieškoti žodžio (EN, LT arba Nr.)…" style="flex:1;" oninput="editorSearch()">
         <button type="button" class="btn btn-primary" onclick="editorNewWord()">＋ Naujas</button>
       </div>
 
@@ -2393,16 +2393,20 @@ function editorSearch() {
   const q = document.getElementById('editor-search').value.trim().toLowerCase();
   const results = document.getElementById('editor-search-results');
   if (!q) { results.style.display = 'none'; return; }
+  const isNr = /^\d+$/.test(q);
   const matches = words
     .map((w, i) => ({ w, i }))
-    .filter(({ w }) => (w.en||'').toLowerCase().includes(q) || (w.lt||'').toLowerCase().includes(q))
+    .filter(({ w }) =>
+      (isNr && String(w.nr) === q) ||
+      (!isNr && ((w.en||'').toLowerCase().includes(q) || (w.lt||'').toLowerCase().includes(q)))
+    )
     .slice(0, 30);
   if (!matches.length) { results.style.display = 'none'; return; }
   results.style.display = 'block';
   results.innerHTML = matches.map(({ w, i }) =>
     `<div onclick="editorLoad(${i})" style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:0.88rem;"
       onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background=''">
-      <strong>${escHtml(w.en)}</strong> <span style="color:var(--text-muted)">${escHtml((w.lt||'').substring(0,60))}</span>
+      <span style="color:var(--text-muted);font-size:0.78rem;">#${escHtml(String(w.nr))} </span><strong>${escHtml(w.en)}</strong> <span style="color:var(--text-muted)">${escHtml((w.lt||'').substring(0,60))}</span>
     </div>`
   ).join('');
 }
